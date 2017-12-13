@@ -1,0 +1,10 @@
+.vscode/*
+.idea/*
+
+# python
+venv
+__pycache__/
+
+# project files
+twitter_publisher.py
+twitter_streamer.py
