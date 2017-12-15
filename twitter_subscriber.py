@@ -6,9 +6,7 @@ import time
 from google.cloud import pubsub_v1
 from google.cloud import bigquery
 
-
-PROJECT_NAME = 'happiness-level'
-SUBSCRIPTION_NAME = 'tweet-listener'
+import settings
 
 
 def receive_tweets(project, subscription_name):
@@ -35,4 +33,4 @@ def send_tweets_to_bigquery(message):
 
 
 if __name__ == '__main__':
-    receive_tweets(PROJECT_NAME, SUBSCRIPTION_NAME)
+    receive_tweets(settings.PROJECT_NAME, settings.SUBSCRIPTION_NAME)
