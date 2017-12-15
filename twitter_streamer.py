@@ -2,12 +2,9 @@ import base64
 import json
 
 from google.cloud import pubsub_v1
-
 from tweepy import StreamListener
-from utils import convertToJSON
 
-PROJECT_NAME = 'happiness-level'
-PUBSUB_TOPIC_NAME = 'tweets'
+import settings
 
 
 # adapted from a google example
@@ -21,9 +18,9 @@ def publish(client, topic_path, data_lines):
     client.publish(topic_path, data=data)
 
 
-class StreamListener(StreamListener):
+class TweetStreamListener(StreamListener):
     client = pubsub_v1.PublisherClient()
-    topic_path = client.topic_path(PROJECT_NAME, PUBSUB_TOPIC_NAME)
+    topic_path = client.topic_path(settings.PROJECT_NAME, settings.PUBSUB_TOPIC_NAME)
     count = 0
     tweets = []
     batch_size = 50
@@ -41,9 +38,9 @@ class StreamListener(StreamListener):
         retweets = status.retweet_count
         loc = status.user.location
         description = status.user.description
-        data = dict(text=text, retweets=retweets, location=loc,
+        tw = dict(text=text, retweets=retweets, location=loc,
                     description=description)
-        tw = convertToJSON(data)
+        print(tw)
         self.tweets.append(tw)
         if len(self.tweets) > self.batch_size:
             self.write_to_pubsub(self.tweets)
