@@ -1,0 +1,6 @@
+import os
+
+TWITTER_APP_KEY = os.environ['TWITTER_APP_KEY']
+TWITTER_APP_SECRET = os.environ['TWITTER_APP_SECRET']
+TWITTER_KEY = os.environ['TWITTER_KEY']
+TWITTER_SECRET = os.environ['TWITTER_SECRET']
