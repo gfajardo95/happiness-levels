@@ -1,6 +1,14 @@
+### IDEs ###
 .vscode/*
 .idea/*
+.settings/*
 
 # python
 venv
 __pycache__/
+
+### java ###
+*.iml
+.classpath
+.project
+target/
