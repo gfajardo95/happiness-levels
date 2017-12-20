@@ -30,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -39,48 +41,81 @@ public class HappinessPipeline {
     static class TweetEntity {
         private String text;
         private String location;
+        private String sentiment;
 
         public TweetEntity() {
+            this.sentiment = "";
         }
 
-        public TweetEntity(String text, String location) {
+        public String getText() {
+            return text;
+        }
+
+        public void setText(String text) {
             this.text = text;
+        }
+
+        public String getLocation() {
+            return location;
+        }
+
+        public void setLocation(String location) {
             this.location = location;
         }
 
+        public String getSentiment() {
+            return sentiment;
+        }
+
+        public void setSentiment(String sentiment) {
+            this.sentiment = sentiment;
+        }
     }
 
     /**
      * converts messages from Pub/Sub topic to a Tweet Entity
      */
-    static class ExtractTweetsFn extends DoFn<PubsubMessage, TweetEntity> {
+    static class ExtractTweetsFn extends DoFn<String, TweetEntity> {
         private static final Logger LOG = LoggerFactory.getLogger(ExtractTweetsFn.class);
 
         @ProcessElement
         public void ProcessElement(ProcessContext c) {
-            byte[] decodedBytes = c.element().getPayload();
+            byte[] decodedBytes = Base64.getUrlDecoder().decode(c.element());
             String decodedString = new String(decodedBytes);
 
             Gson gson = new Gson();
             Type type = new TypeToken<
-                    Map<String, List<Map<String, TweetEntity>>>>(){}.getType();
+                    Map<String, List<Map<String, TweetEntity>>>>() {
+            }.getType();
             Map<String, List<Map<String, TweetEntity>>> twraw = gson.fromJson(decodedString, type);
             List<Map<String, TweetEntity>> twmessages = twraw.get("messages");
 
             for (Map<String, TweetEntity> message : twmessages) {
-                LOG.info(message.toString());
                 TweetEntity tw = message.get("data");
-                LOG.info(tw.toString());
+                LOG.info(tw.getText());
+                LOG.info(tw.getLocation());
+                c.output(tw);
             }
+
         }
     }
 
-    static class AnalyzeSentiment extends PTransform<PCollection<PubsubMessage>, PCollection<TweetEntity>> {
+    static class GetSentiment extends DoFn<TweetEntity, TweetEntity> {
+        private static final Logger LOG = LoggerFactory.getLogger(ExtractTweetsFn.class);
 
-        public PCollection<TweetEntity> expand(PCollection<PubsubMessage> messages) {
+        @ProcessElement
+        public void ProcessElement (ProcessContext c) {
+            LOG.info("In GetSentiment$ProcessElement: " + c.element().toString());
+        }
+    }
+
+    static class AnalyzeSentiment extends PTransform<PCollection<String>, PCollection<TweetEntity>> {
+
+        public PCollection<TweetEntity> expand(PCollection<String> messages) {
             PCollection<TweetEntity> tweets = messages.apply(ParDo.of(new ExtractTweetsFn()));
 
-            return tweets;
+            PCollection<TweetEntity> sentiments = tweets.apply(ParDo.of(new GetSentiment()));
+            return sentiments;
         }
     }
 
@@ -89,24 +124,25 @@ public class HappinessPipeline {
         // @Default.String("tweets")
         @Validation.Required
         String getTopic();
+
         void setTopic(String value);
 
         @Description("Path of the file to write to")
         @Validation.Required
         String getOutput();
+
         void setOutput(String value);
     }
 
     public static void main(String[] args) {
         Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
+
         Pipeline pipeline = Pipeline.create(options);
 
         // alternative is readMessages() which just returns a PubSub stream, but lets see if this correctly
         // decodes it for me
-        /*pipeline.apply(PubsubIO.readStrings().fromTopic(options.getTopic()))
-            .apply(new AnalyzeSentiment());*/
-        pipeline.apply(PubsubIO.readMessages().fromTopic(options.getTopic()))
-                .apply(new AnalyzeSentiment());
+        pipeline.apply(PubsubIO.readStrings().fromTopic(options.getTopic()))
+            .apply(new AnalyzeSentiment());
 
         pipeline.run().waitUntilFinish();
 
