@@ -17,7 +17,6 @@ import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
-import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
@@ -30,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +71,9 @@ public class HappinessPipeline {
     }
 
     /**
-     * converts messages from Pub/Sub topic to a Tweet Entity
+     * decodes base64 encoded messages from a Pub/Sub topic into an equivalent Map.
+     * The list of 'tweets' in the Map are encoded to Avro and returned for further
+     * pipeline execution
      */
     static class ExtractTweetsFn extends DoFn<String, TweetEntity> {
         private static final Logger LOG = LoggerFactory.getLogger(ExtractTweetsFn.class);
@@ -109,6 +109,10 @@ public class HappinessPipeline {
         }
     }
 
+    /**
+     * Tweets are collected from a Pub/Sub topic. The sentiment of the messages are analyzed and
+     * their positivity is recorded.
+     */
     static class AnalyzeSentiment extends PTransform<PCollection<String>, PCollection<TweetEntity>> {
 
         public PCollection<TweetEntity> expand(PCollection<String> messages) {
@@ -134,6 +138,11 @@ public class HappinessPipeline {
         void setOutput(String value);
     }
 
+    /**
+     * The positivity of tweets coming through a Pub/Sub topic are recorded, and divided into different
+     * 'country buckets'. The collective average of the tweet's positivity is then calculated for each
+     * bucket. The averages are recalculated every 10 seconds.
+     */
     public static void main(String[] args) {
         Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
 
