@@ -259,7 +259,12 @@
         <version>${beam.version}</version>
     </dependency>
 
-    <!-- Dependencies below this line are specific dependencies needed by the examples code. -->
+    <!-- Adds a dependency on the Google Cloud Natural Language API module. -->
+    <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>google-cloud-language</artifactId>
+        <version>1.14.0</version>
+    </dependency>
     <dependency>
         <groupId>com.google.api-client</groupId>
         <artifactId>google-api-client</artifactId>
