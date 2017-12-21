@@ -245,6 +245,19 @@
 </profiles>
 
 <dependencies>
+    <!-- Adds a dependency to the Stanford CoreNLP module. -->
+    <dependency>
+        <groupId>edu.stanford.nlp</groupId>
+        <artifactId>stanford-corenlp</artifactId>
+        <version>3.8.0</version>
+    </dependency>
+    <dependency>
+        <groupId>edu.stanford.nlp</groupId>
+        <artifactId>stanford-corenlp</artifactId>
+        <version>3.8.0</version>
+        <classifier>models</classifier>
+    </dependency>
+
     <!-- Adds a dependency on the Beam SDK. -->
     <dependency>
         <groupId>org.apache.beam</groupId>
