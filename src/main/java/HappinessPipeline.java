@@ -105,7 +105,8 @@ public class HappinessPipeline {
 
         @ProcessElement
         public void ProcessElement (ProcessContext c) {
-            LOG.info("In GetSentiment$ProcessElement: " + c.element().toString());
+            TweetEntity tw = c.element();
+            LOG.info("In GetSentiment$ProcessElement: " + tw.toString());
         }
     }
 
@@ -125,7 +126,6 @@ public class HappinessPipeline {
 
     public interface Options extends PipelineOptions {
         @Description("Pub/Sub topic to get input from")
-        // @Default.String("tweets")
         @Validation.Required
         String getTopic();
 
@@ -148,8 +148,6 @@ public class HappinessPipeline {
 
         Pipeline pipeline = Pipeline.create(options);
 
-        // alternative is readMessages() which just returns a PubSub stream, but lets see if this correctly
-        // decodes it for me
         pipeline.apply(PubsubIO.readStrings().fromTopic(options.getTopic()))
             .apply(new AnalyzeSentiment());
 
