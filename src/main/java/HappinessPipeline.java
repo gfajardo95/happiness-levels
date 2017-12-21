@@ -13,6 +13,13 @@
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import edu.stanford.nlp.ling.CoreAnnotations;
+import edu.stanford.nlp.neural.rnn.RNNCoreAnnotations;
+import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
+import edu.stanford.nlp.trees.Tree;
+import edu.stanford.nlp.util.CoreMap;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
@@ -32,6 +39,9 @@ import java.lang.reflect.Type;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+
+import static java.lang.Math.abs;
 
 public class HappinessPipeline {
 
@@ -39,10 +49,10 @@ public class HappinessPipeline {
     static class TweetEntity {
         private String text;
         private String location;
-        private String sentiment;
+        private int sentiment;
 
         public TweetEntity() {
-            this.sentiment = "";
+            this.sentiment = 0;
         }
 
         public String getText() {
@@ -61,11 +71,11 @@ public class HappinessPipeline {
             this.location = location;
         }
 
-        public String getSentiment() {
+        public int getSentiment() {
             return sentiment;
         }
 
-        public void setSentiment(String sentiment) {
+        public void setSentiment(int sentiment) {
             this.sentiment = sentiment;
         }
     }
@@ -107,6 +117,12 @@ public class HappinessPipeline {
         public void ProcessElement (ProcessContext c) {
             TweetEntity tw = c.element();
             LOG.info("In GetSentiment$ProcessElement: " + tw.toString());
+            //sentiments range 1 - 4: 1 is very bad, 2 is bad, 3 is good, and 4 is very good
+            SentimentAnalyzer analyzer = new SentimentAnalyzer();
+            int sentiment = analyzer.getSentimentFromText(tw.getText());
+            LOG.info("sentiment is: " + sentiment);
+            tw.setSentiment(sentiment);
+            c.output(tw);
         }
     }
 
@@ -152,6 +168,5 @@ public class HappinessPipeline {
             .apply(new AnalyzeSentiment());
 
         pipeline.run().waitUntilFinish();
-
     }
 }
