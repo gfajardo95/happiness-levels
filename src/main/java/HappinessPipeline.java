@@ -28,10 +28,12 @@ import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.Validation;
-import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.PTransform;
-import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.*;
+import org.apache.beam.sdk.transforms.windowing.FixedWindows;
+import org.apache.beam.sdk.transforms.windowing.Window;
+import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,13 +116,11 @@ public class HappinessPipeline {
         private static final Logger LOG = LoggerFactory.getLogger(ExtractTweetsFn.class);
 
         @ProcessElement
-        public void ProcessElement (ProcessContext c) {
+        public void ProcessElement(ProcessContext c) {
             TweetEntity tw = c.element();
-            LOG.info("In GetSentiment$ProcessElement: " + tw.toString());
-            //sentiments range 1 - 4: 1 is very bad, 2 is bad, 3 is good, and 4 is very good
             SentimentAnalyzer analyzer = new SentimentAnalyzer();
             int sentiment = analyzer.getSentimentFromText(tw.getText());
-            LOG.info("sentiment is: " + sentiment);
+            LOG.info("sentiment is: " + sentiment + " of tweet: " + tw.getText());
             tw.setSentiment(sentiment);
             c.output(tw);
         }
@@ -137,6 +137,18 @@ public class HappinessPipeline {
 
             PCollection<TweetEntity> sentiments = tweets.apply(ParDo.of(new GetSentiment()));
             return sentiments;
+        }
+    }
+
+    /**
+     * creates key/value pairs for the tweets where each tweet's key is the country in which it's written
+     */
+    static class MapTweetsByCountry extends SimpleFunction<TweetEntity, KV<String,
+            TweetEntity>> {
+        @Override
+        public KV<String, TweetEntity> apply (TweetEntity tweet){
+            //get country using Google Maps API
+            return KV.of("US", tweet);
         }
     }
 
@@ -165,7 +177,11 @@ public class HappinessPipeline {
         Pipeline pipeline = Pipeline.create(options);
 
         pipeline.apply(PubsubIO.readStrings().fromTopic(options.getTopic()))
-            .apply(new AnalyzeSentiment());
+                .apply(new AnalyzeSentiment())
+                .apply(Window.<TweetEntity>into(FixedWindows.of(Duration.standardMinutes(2))))
+                .apply(MapElements.via(new MapTweetsByCountry()));
+        //group by country
+        //find each country's average sentiment
 
         pipeline.run().waitUntilFinish();
     }
