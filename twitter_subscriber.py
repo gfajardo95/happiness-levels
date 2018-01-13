@@ -15,7 +15,7 @@ def write_tweets_to_bq(dataset_id, table_id, tweets):
     table_ref = dataset_ref.table(table_id)
     table = client.get_table(table_ref)
 
-    errors = client.create_rows(table, tweets)
+    errors = client.insert_rows(table, tweets)
     if not errors:
         print('Loaded {} row(s) into {}:{}'.format(len(tweets), dataset_id, table_id))
     else:
