@@ -179,8 +179,8 @@ public class HappinessPipeline {
         pipeline.apply(PubsubIO.readStrings().fromTopic(options.getTopic()))
                 .apply(new AnalyzeSentiment())
                 .apply(Window.<TweetEntity>into(FixedWindows.of(Duration.standardMinutes(2))))
-                .apply(MapElements.via(new MapTweetsByCountry()));
-        //group by country
+                .apply(MapElements.via(new MapTweetsByCountry()))
+                .apply(GroupByKey.<String, TweetEntity>create());  //group by country
         //find each country's average sentiment
 
         pipeline.run().waitUntilFinish();
