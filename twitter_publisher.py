@@ -12,7 +12,7 @@ def publish_twitter_stream():
 
     stream_listener = TweetStreamListener()
     stream = tweepy.Stream(auth=api.auth, listener=stream_listener)
-    stream.filter(track=["trump", "donald trump"])
+    stream.filter(track=["soccer"])
 
 
 if __name__ == '__main__':
