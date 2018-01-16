@@ -7,7 +7,7 @@ from tweepy import StreamListener
 import settings
 
 
-# adapted from a google example
+# publishes the tweets to a Pub/Sub topic
 def publish(client, topic_path, data_lines):
     messages = []
     for line in data_lines:
