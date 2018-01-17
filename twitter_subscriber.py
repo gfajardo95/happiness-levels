@@ -24,11 +24,8 @@ def write_tweets_to_bq(dataset_id, table_id, tweets):
             print(error)
 
 
-# twraw is a dictionary
-# twraw['messages'] is a list
-# each list contains a dict with key data
-# list at each position gives us a dict with all the data points. That's the dict we want to save
-def write_tweets_to_bigquery(data):
+# decodes the message from PubSub
+def collect_tweets(data):
     tweets = []
     stream = base64.urlsafe_b64decode(data)
     twraw = json.loads(stream)
@@ -46,7 +43,7 @@ def receive_tweets(project, subscription_name):
 
     def callback(message):
         print('Received message: {}'.format(message))
-        write_tweets_to_bigquery(message.data)
+        collect_tweets(message.data)
         message.ack()
 
     subscription = subscriber.subscribe(subscription_path, callback=callback)
