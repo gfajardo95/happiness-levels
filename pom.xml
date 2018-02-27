@@ -257,6 +257,12 @@
         <version>3.8.0</version>
         <classifier>models</classifier>
     </dependency>
+    <!-- Adds a dependency on Apache Commons Math 3 -->
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-math3</artifactId>
+        <version>3.6.1</version>
+    </dependency>
 
     <!-- Adds a dependency on the Beam SDK. -->
     <dependency>
