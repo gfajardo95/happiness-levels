@@ -13,13 +13,6 @@
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import edu.stanford.nlp.ling.CoreAnnotations;
-import edu.stanford.nlp.neural.rnn.RNNCoreAnnotations;
-import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
-import edu.stanford.nlp.trees.Tree;
-import edu.stanford.nlp.util.CoreMap;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
@@ -41,9 +34,6 @@ import java.lang.reflect.Type;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-
-import static java.lang.Math.abs;
 
 public class HappinessPipeline {
 
@@ -51,7 +41,7 @@ public class HappinessPipeline {
     static class TweetEntity {
         private String text;
         private String location;
-        private int sentiment;
+        private double sentiment;
 
         public TweetEntity() {
             this.sentiment = 0;
@@ -73,11 +63,11 @@ public class HappinessPipeline {
             this.location = location;
         }
 
-        public int getSentiment() {
+        public double getSentiment() {
             return sentiment;
         }
 
-        public void setSentiment(int sentiment) {
+        public void setSentiment(double sentiment) {
             this.sentiment = sentiment;
         }
     }
@@ -119,7 +109,7 @@ public class HappinessPipeline {
         public void ProcessElement(ProcessContext c) {
             TweetEntity tw = c.element();
             SentimentAnalyzer analyzer = new SentimentAnalyzer();
-            int sentiment = analyzer.getSentimentFromText(tw.getText());
+            double sentiment = analyzer.getSentimentFromText(tw.getText());
             LOG.info("sentiment is: " + sentiment + " of tweet: " + tw.getText());
             tw.setSentiment(sentiment);
             c.output(tw);
@@ -143,10 +133,9 @@ public class HappinessPipeline {
     /**
      * creates key/value pairs for the tweets where each tweet's key is the country in which it's written
      */
-    static class MapTweetsByCountry extends SimpleFunction<TweetEntity, KV<String,
-            TweetEntity>> {
+    static class MapTweetsByCountry extends SimpleFunction<TweetEntity, KV<String, TweetEntity>> {
         @Override
-        public KV<String, TweetEntity> apply (TweetEntity tweet){
+        public KV<String, TweetEntity> apply(TweetEntity tweet) {
             //get country using Google Maps API
             return KV.of("US", tweet);
         }
