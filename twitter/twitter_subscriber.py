@@ -4,7 +4,7 @@ import json
 import time
 
 from google.cloud import bigquery
-from google.cloud import pubsub_v1
+from google.cloud import pubsub
 
 import settings
 
@@ -37,7 +37,7 @@ def collect_tweets(data):
 
 
 def receive_tweets(project, subscription_name):
-    subscriber = pubsub_v1.SubscriberClient()
+    subscriber = pubsub.SubscriberClient()
     subscription_path = subscriber.subscription_path(
         project, subscription_name)
 

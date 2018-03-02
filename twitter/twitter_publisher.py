@@ -1,4 +1,3 @@
-from google.cloud import pubsub_v1
 import tweepy
 
 import settings

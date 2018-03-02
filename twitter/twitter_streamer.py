@@ -1,7 +1,7 @@
 import base64
 import json
 
-from google.cloud import pubsub_v1
+from google.cloud import pubsub
 from tweepy import StreamListener
 
 import settings
@@ -19,7 +19,7 @@ def publish(client, topic_path, data_lines):
 
 
 class TweetStreamListener(StreamListener):
-    client = pubsub_v1.PublisherClient()
+    client = pubsub.PublisherClient()
     topic_path = client.topic_path(settings.PROJECT_NAME, settings.PUBSUB_TOPIC_NAME)
     count = 0
     tweets = []
