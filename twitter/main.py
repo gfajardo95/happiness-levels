@@ -1,5 +1,5 @@
-from twitter_publisher import publish_twitter_stream
-from twitter_subscriber import receive_tweets
+from publisher import publish_twitter_stream
+from subscriber import receive_tweets
 
 
 PROJECT_NAME = 'happiness-level'
