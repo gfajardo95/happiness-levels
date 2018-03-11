@@ -102,6 +102,10 @@ public class HappinessPipeline {
         }
     }
 
+    /**
+     * using the Stanford CoreNLP library, the sentiment of every tweet is calculated and set on the .sentiment
+     * property of the TweetEntity class
+     */
     static class GetSentiment extends DoFn<TweetEntity, TweetEntity> {
         private static final Logger LOG = LoggerFactory.getLogger(ExtractTweetsFn.class);
 
@@ -117,6 +121,17 @@ public class HappinessPipeline {
     }
 
     /**
+     * creates key/value pairs for the tweets where each tweet's key is the country in which it's written
+     */
+    static class MapTweetsByCountry extends SimpleFunction<TweetEntity, KV<String, TweetEntity>> {
+        @Override
+        public KV<String, TweetEntity> apply(TweetEntity tweet) {
+            //get country using Google Maps API
+            return KV.of("US", tweet);
+        }
+    }
+
+    /**
      * Tweets are collected from a Pub/Sub topic. The sentiment of the messages are analyzed and
      * their positivity is recorded.
      */
@@ -127,17 +142,6 @@ public class HappinessPipeline {
 
             PCollection<TweetEntity> sentiments = tweets.apply(ParDo.of(new GetSentiment()));
             return sentiments;
-        }
-    }
-
-    /**
-     * creates key/value pairs for the tweets where each tweet's key is the country in which it's written
-     */
-    static class MapTweetsByCountry extends SimpleFunction<TweetEntity, KV<String, TweetEntity>> {
-        @Override
-        public KV<String, TweetEntity> apply(TweetEntity tweet) {
-            //get country using Google Maps API
-            return KV.of("US", tweet);
         }
     }
 
