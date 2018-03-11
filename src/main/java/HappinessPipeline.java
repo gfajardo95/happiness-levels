@@ -1,4 +1,3 @@
-
 /**
  * <p>To execute this pipeline, specify the pipeline configuration like this:
  * <pre>{@code
@@ -10,12 +9,14 @@
  * }
  * </pre>
  */
-
+import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.api.services.bigquery.model.TableRow;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
+import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
@@ -31,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -121,17 +123,6 @@ public class HappinessPipeline {
     }
 
     /**
-     * creates key/value pairs for the tweets where each tweet's key is the country in which it's written
-     */
-    static class MapTweetsByCountry extends SimpleFunction<TweetEntity, KV<String, TweetEntity>> {
-        @Override
-        public KV<String, TweetEntity> apply(TweetEntity tweet) {
-            //get country using Google Maps API
-            return KV.of("US", tweet);
-        }
-    }
-
-    /**
      * Tweets are collected from a Pub/Sub topic. The sentiment of the messages are analyzed and
      * their positivity is recorded.
      */
@@ -142,6 +133,25 @@ public class HappinessPipeline {
 
             PCollection<TweetEntity> sentiments = tweets.apply(ParDo.of(new GetSentiment()));
             return sentiments;
+        }
+    }
+
+    /**
+     * creates key/value pairs for the tweets where each tweet's key is the country in which it's written
+     */
+    static class MapTweetsByCountry extends SimpleFunction<TweetEntity, KV<String, Double>> {
+        @Override
+        public KV<String, Double> apply(TweetEntity tweet) {
+            //get country using Google Maps API
+            return KV.of("US", tweet.getSentiment());
+        }
+    }
+
+    static class TweetDataToTableRow extends SimpleFunction<KV<String, Double>, TableRow> {
+        @Override
+        public TableRow apply (KV<String, Double> sentimentInCountryMap){
+            return new TableRow().set("country", sentimentInCountryMap.getKey())
+                    .set("avgSentiment", sentimentInCountryMap.getValue());
         }
     }
 
@@ -173,9 +183,9 @@ public class HappinessPipeline {
                 .apply(new AnalyzeSentiment())
                 .apply(Window.<TweetEntity>into(FixedWindows.of(Duration.standardMinutes(2))))
                 .apply(MapElements.via(new MapTweetsByCountry()))
-                .apply(GroupByKey.<String, TweetEntity>create());  //group by country
-        //find each country's average sentiment
-
+                .apply(Mean.<String, Double>perKey())
+                .apply(MapElements.via(new TweetDataToTableRow()))
+                .apply(BigQueryIO.write());
         pipeline.run().waitUntilFinish();
     }
 }
