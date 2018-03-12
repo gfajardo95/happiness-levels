@@ -11,6 +11,7 @@
  */
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
+import com.google.api.services.bigquery.model.TableSchema;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.beam.sdk.Pipeline;
@@ -176,8 +177,14 @@ public class HappinessPipeline {
      */
     public static void main(String[] args) {
         Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
-
         Pipeline pipeline = Pipeline.create(options);
+
+        List<TableFieldSchema> fields = new ArrayList<>();
+        fields.add(new TableFieldSchema().setName("country").setType
+                ("STRING"));
+        fields.add(new TableFieldSchema().setName("avgsentiment").setType
+                ("DOUBLE"));
+        TableSchema schema = new TableSchema().setFields(fields);
 
         pipeline.apply(PubsubIO.readStrings().fromTopic(options.getTopic()))
                 .apply(new AnalyzeSentiment())
@@ -185,7 +192,10 @@ public class HappinessPipeline {
                 .apply(MapElements.via(new MapTweetsByCountry()))
                 .apply(Mean.<String, Double>perKey())
                 .apply(MapElements.via(new TweetDataToTableRow()))
-                .apply(BigQueryIO.write());
+                .apply(BigQueryIO.writeTableRows()
+                        .to("happiness-level:global_sentiment_levels.average_by_country")  // change this to your own
+                                                                                           // BigQuery dataset
+                        .withSchema(schema));
         pipeline.run().waitUntilFinish();
     }
 }
