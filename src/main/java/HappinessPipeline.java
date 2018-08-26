@@ -33,12 +33,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class HappinessPipeline {
+    private static final String COUNTRY_COLUMN = "COUNTRY";
+    private static final String SENTIMENT_COLUMN = "AVERAGE_SENTIMENT";
+    private static final String CREATED_DATE_COLUMN = "CREATION_DATE";
 
     @DefaultCoder(AvroCoder.class)
     static class TweetEntity {
@@ -81,8 +82,6 @@ public class HappinessPipeline {
      * pipeline execution
      */
     static class ExtractTweetsFn extends DoFn<String, TweetEntity> {
-        private static final Logger LOG = LoggerFactory.getLogger(ExtractTweetsFn.class);
-
         @ProcessElement
         public void ProcessElement(ProcessContext c) {
             byte[] decodedBytes = Base64.getUrlDecoder().decode(c.element());
@@ -97,8 +96,6 @@ public class HappinessPipeline {
 
             for (Map<String, TweetEntity> message : twmessages) {
                 TweetEntity tw = message.get("data");
-                LOG.info(tw.getText());
-                LOG.info(tw.getLocation());
                 c.output(tw);
             }
 
@@ -110,14 +107,11 @@ public class HappinessPipeline {
      * property of the TweetEntity class
      */
     static class GetSentiment extends DoFn<TweetEntity, TweetEntity> {
-        private static final Logger LOG = LoggerFactory.getLogger(ExtractTweetsFn.class);
-
         @ProcessElement
         public void ProcessElement(ProcessContext c) {
             TweetEntity tw = c.element();
             SentimentAnalyzer analyzer = new SentimentAnalyzer();
             double sentiment = analyzer.getSentimentFromText(tw.getText());
-            LOG.info("sentiment is: " + sentiment + " of tweet: " + tw.getText());
             tw.setSentiment(sentiment);
             c.output(tw);
         }
@@ -128,12 +122,10 @@ public class HappinessPipeline {
      * their positivity is recorded.
      */
     static class AnalyzeSentiment extends PTransform<PCollection<String>, PCollection<TweetEntity>> {
-
         public PCollection<TweetEntity> expand(PCollection<String> messages) {
             PCollection<TweetEntity> tweets = messages.apply(ParDo.of(new ExtractTweetsFn()));
 
-            PCollection<TweetEntity> sentiments = tweets.apply(ParDo.of(new GetSentiment()));
-            return sentiments;
+            return tweets.apply(ParDo.of(new GetSentiment()));
         }
     }
 
@@ -151,8 +143,9 @@ public class HappinessPipeline {
     static class TweetDataToTableRow extends SimpleFunction<KV<String, Double>, TableRow> {
         @Override
         public TableRow apply (KV<String, Double> sentimentInCountryMap){
-            return new TableRow().set("country", sentimentInCountryMap.getKey())
-                    .set("avgSentiment", sentimentInCountryMap.getValue());
+            return new TableRow().set(COUNTRY_COLUMN, sentimentInCountryMap.getKey())
+                    .set(SENTIMENT_COLUMN, sentimentInCountryMap.getValue())
+                    .set(CREATED_DATE_COLUMN, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         }
     }
 
@@ -180,10 +173,11 @@ public class HappinessPipeline {
         Pipeline pipeline = Pipeline.create(options);
 
         List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName("country").setType
+        fields.add(new TableFieldSchema().setName(COUNTRY_COLUMN).setType
                 ("STRING"));
-        fields.add(new TableFieldSchema().setName("avgsentiment").setType
-                ("DOUBLE"));
+        fields.add(new TableFieldSchema().setName(SENTIMENT_COLUMN).setType
+                ("FLOAT"));
+        fields.add(new TableFieldSchema().setName(CREATED_DATE_COLUMN).setType("DATETIME"));
         TableSchema schema = new TableSchema().setFields(fields);
 
         pipeline.apply(PubsubIO.readStrings().fromTopic(options.getTopic()))
@@ -193,8 +187,8 @@ public class HappinessPipeline {
                 .apply(Mean.<String, Double>perKey())
                 .apply(MapElements.via(new TweetDataToTableRow()))
                 .apply(BigQueryIO.writeTableRows()
-                        .to("happiness-level:global_sentiment_levels.average_by_country")  // change this to your own
-                                                                                           // BigQuery dataset
+                        .to("happiness-level:global_sentiment_levels.country_sentiment")  // change this to your own
+                                                                                          // BigQuery dataset
                         .withSchema(schema));
         pipeline.run().waitUntilFinish();
     }
