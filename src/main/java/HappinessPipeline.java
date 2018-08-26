@@ -98,7 +98,6 @@ public class HappinessPipeline {
                 TweetEntity tw = message.get("data");
                 c.output(tw);
             }
-
         }
     }
 
@@ -129,6 +128,19 @@ public class HappinessPipeline {
         }
     }
 
+    static class SentimentDataToString extends PTransform<PCollection<KV<String, Double>>, PCollection<String>> {
+        private static final Logger LOG = LoggerFactory.getLogger(ExtractTweetsFn.class);
+        public PCollection<String> expand (PCollection<KV<String, Double>> row) {
+            return row.apply(ParDo.of(new DoFn<KV<String, Double>, String>() {
+                @ProcessElement
+                public void ProcessElement(ProcessContext c){
+                    c.output(c.element().getKey() + ": " + c.element().getValue() + ", " + new SimpleDateFormat(
+                            "yyyy-MM-dd HH:mm:ss").format(new Date()));
+                }
+            }));
+        }
+    }
+
     /**
      * creates key/value pairs for the tweets where each tweet's key is the country in which it's written
      */
@@ -140,27 +152,24 @@ public class HappinessPipeline {
         }
     }
 
-    static class TweetDataToTableRow extends SimpleFunction<KV<String, Double>, TableRow> {
-        @Override
-        public TableRow apply (KV<String, Double> sentimentInCountryMap){
-            return new TableRow().set(COUNTRY_COLUMN, sentimentInCountryMap.getKey())
-                    .set(SENTIMENT_COLUMN, sentimentInCountryMap.getValue())
-                    .set(CREATED_DATE_COLUMN, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-        }
-    }
-
     public interface Options extends PipelineOptions {
         @Description("Pub/Sub topic to get input from")
         @Validation.Required
-        String getTopic();
+        String getInputTopic();
 
-        void setTopic(String value);
+        void setInputTopic(String value);
 
         @Description("Path of the file to write to")
         @Validation.Required
         String getOutput();
 
         void setOutput(String value);
+
+        @Description("Pub/Sub topic to send output to")
+        @Validation.Required
+        String getOutputTopic();
+
+        void setOutputTopic(String value);
     }
 
     /**
@@ -180,16 +189,14 @@ public class HappinessPipeline {
         fields.add(new TableFieldSchema().setName(CREATED_DATE_COLUMN).setType("DATETIME"));
         TableSchema schema = new TableSchema().setFields(fields);
 
-        pipeline.apply(PubsubIO.readStrings().fromTopic(options.getTopic()))
+        pipeline.apply(PubsubIO.readStrings().fromTopic(options.getInputTopic()))
                 .apply(new AnalyzeSentiment())
                 .apply(Window.<TweetEntity>into(FixedWindows.of(Duration.standardMinutes(2))))
                 .apply(MapElements.via(new MapTweetsByCountry()))
                 .apply(Mean.<String, Double>perKey())
-                .apply(MapElements.via(new TweetDataToTableRow()))
-                .apply(BigQueryIO.writeTableRows()
-                        .to("happiness-level:global_sentiment_levels.country_sentiment")  // change this to your own
-                                                                                          // BigQuery dataset
-                        .withSchema(schema));
+                .apply(new SentimentDataToString())
+                .apply(PubsubIO.writeStrings().to(options.getOutputTopic()));
+
         pipeline.run().waitUntilFinish();
     }
 }
