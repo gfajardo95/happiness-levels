@@ -47,10 +47,11 @@ class TweetStreamListener(StreamListener):
             self.tweets = []
 
         self.count += 1
-        if self.count >= self.total_tweets:
-            return False
         if (self.count % 50) == 0:
             print("count is: {}".format(self.count))
+        if self.count >= self.total_tweets:
+            return False
+
         return True
 
     def on_error(self, status_code):
