@@ -12,3 +12,5 @@ __pycache__/
 .classpath
 .project
 target/
+
+/webapp/node_modules/
