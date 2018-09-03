@@ -5,19 +5,19 @@
  *   --tempLocation=gs://YOUR_TEMP_DIRECTORY
  *   --runner=YOUR_RUNNER
  *   --dataset=YOUR-DATASET
- *   --topic=projects/YOUR-PROJECT/topics/YOUR-TOPIC
+ *   --inputTopic=projects/YOUR_PROJECT_ID/topics/YOUR_INPUT_TOPIC
+ *   --outputTopic=projects/YOUR_PROJECT_ID/topics/YOUR_OUTPUT_TOPIC
  * }
  * </pre>
  */
+
 import com.google.api.services.bigquery.model.TableFieldSchema;
-import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;
-import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
@@ -29,8 +29,6 @@ import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
@@ -122,14 +120,13 @@ public class HappinessPipeline {
      */
     static class AnalyzeSentiment extends PTransform<PCollection<String>, PCollection<TweetEntity>> {
         public PCollection<TweetEntity> expand(PCollection<String> messages) {
-            PCollection<TweetEntity> tweets = messages.apply(ParDo.of(new ExtractTweetsFn()));
-
-            return tweets.apply(ParDo.of(new GetSentiment()));
+            return messages
+                    .apply(ParDo.of(new ExtractTweetsFn()))
+                    .apply(ParDo.of(new GetSentiment()));
         }
     }
 
     static class SentimentDataToString extends PTransform<PCollection<KV<String, Double>>, PCollection<String>> {
-        private static final Logger LOG = LoggerFactory.getLogger(ExtractTweetsFn.class);
         public PCollection<String> expand (PCollection<KV<String, Double>> row) {
             return row.apply(ParDo.of(new DoFn<KV<String, Double>, String>() {
                 @ProcessElement
@@ -158,12 +155,6 @@ public class HappinessPipeline {
         String getInputTopic();
 
         void setInputTopic(String value);
-
-        @Description("Path of the file to write to")
-        @Validation.Required
-        String getOutput();
-
-        void setOutput(String value);
 
         @Description("Pub/Sub topic to send output to")
         @Validation.Required
