@@ -24,6 +24,7 @@
     <maven-exec-plugin.version>1.6.0</maven-exec-plugin.version>
     <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
     <maven-shade-plugin.version>3.1.0</maven-shade-plugin.version>
+    <mockito.version>1.9.5</mockito.version>
     <pubsub.version>v1-rev10-1.22.0</pubsub.version>
     <slf4j.version>1.7.25</slf4j.version>
     <spark.version>1.6.3</spark.version>
@@ -150,36 +151,6 @@
     </profile>
 
     <profile>
-        <id>apex-runner</id>
-        <!-- Makes the ApexRunner available when running a pipeline. -->
-        <dependencies>
-            <dependency>
-                <groupId>org.apache.beam</groupId>
-                <artifactId>beam-runners-apex</artifactId>
-                <version>${beam.version}</version>
-                <scope>runtime</scope>
-            </dependency>
-            <!--
-              Apex depends on httpclient version 4.3.5, project has a transitive dependency to httpclient 4.0.1 from
-              google-http-client. Apex dependency version being specified explicitly so that it gets picked up. This
-              can be removed when the project no longer has a dependency on a different httpclient version.
-            -->
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>4.3.5</version>
-                <scope>runtime</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>commons-codec</groupId>
-                        <artifactId>commons-codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-        </dependencies>
-    </profile>
-
-    <profile>
         <id>dataflow-runner</id>
         <!-- Makes the DataflowRunner available when running a pipeline. -->
         <dependencies>
@@ -187,57 +158,6 @@
                 <groupId>org.apache.beam</groupId>
                 <artifactId>beam-runners-google-cloud-dataflow-java</artifactId>
                 <version>${beam.version}</version>
-                <scope>runtime</scope>
-            </dependency>
-        </dependencies>
-    </profile>
-
-    <profile>
-        <id>flink-runner</id>
-        <!-- Makes the FlinkRunner available when running a pipeline. -->
-        <dependencies>
-            <dependency>
-                <groupId>org.apache.beam</groupId>
-                <artifactId>beam-runners-flink_2.10</artifactId>
-                <version>${beam.version}</version>
-                <scope>runtime</scope>
-            </dependency>
-        </dependencies>
-    </profile>
-
-    <profile>
-        <id>spark-runner</id>
-        <!-- Makes the SparkRunner available when running a pipeline. Additionally,
-             overrides some Spark dependencies to Beam-compatible versions. -->
-        <dependencies>
-            <dependency>
-                <groupId>org.apache.beam</groupId>
-                <artifactId>beam-runners-spark</artifactId>
-                <version>${beam.version}</version>
-                <scope>runtime</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.beam</groupId>
-                <artifactId>beam-sdks-java-io-hadoop-file-system</artifactId>
-                <version>${beam.version}</version>
-                <scope>runtime</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.spark</groupId>
-                <artifactId>spark-streaming_2.10</artifactId>
-                <version>${spark.version}</version>
-                <scope>runtime</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>jul-to-slf4j</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.module</groupId>
-                <artifactId>jackson-module-scala_2.10</artifactId>
-                <version>${jackson.version}</version>
                 <scope>runtime</scope>
             </dependency>
         </dependencies>
@@ -292,20 +212,6 @@
         </exclusions>
     </dependency>
 
-    <dependency>
-        <groupId>com.google.apis</groupId>
-        <artifactId>google-api-services-bigquery</artifactId>
-        <version>${bigquery.version}</version>
-        <exclusions>
-            <!-- Exclude an old version of guava that is being pulled
-                 in by a transitive dependency of google-api-client -->
-            <exclusion>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava-jdk5</artifactId>
-            </exclusion>
-        </exclusions>
-    </dependency>
-
     <!--JSON Encoder/Decoder-->
     <dependency>
         <groupId>com.google.code.gson</groupId>
@@ -331,6 +237,20 @@
         <groupId>com.google.apis</groupId>
         <artifactId>google-api-services-pubsub</artifactId>
         <version>${pubsub.version}</version>
+        <exclusions>
+            <!-- Exclude an old version of guava that is being pulled
+                 in by a transitive dependency of google-api-client -->
+            <exclusion>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava-jdk5</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+
+    <dependency>
+        <groupId>com.google.apis</groupId>
+        <artifactId>google-api-services-bigquery</artifactId>
+        <version>${bigquery.version}</version>
         <exclusions>
             <!-- Exclude an old version of guava that is being pulled
                  in by a transitive dependency of google-api-client -->
@@ -372,7 +292,13 @@
          which is used in the main code of DebuggingWordCount example. -->
     <dependency>
         <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest-all</artifactId>
+        <artifactId>hamcrest-core</artifactId>
+        <version>${hamcrest.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-library</artifactId>
         <version>${hamcrest.version}</version>
     </dependency>
 
@@ -387,6 +313,13 @@
         <groupId>org.apache.beam</groupId>
         <artifactId>beam-runners-direct-java</artifactId>
         <version>${beam.version}</version>
+        <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
         <scope>test</scope>
     </dependency>
 </dependencies>
