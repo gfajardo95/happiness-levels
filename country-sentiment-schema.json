@@ -1,0 +1,17 @@
+[
+  {
+    "mode": "REQUIRED",
+    "name": "COUNTRY",
+    "type": "STRING"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "AVERAGE_SENTIMENT",
+    "type": "FLOAT"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "CREATION_DATE",
+    "type": "DATETIME"
+  }
+]
