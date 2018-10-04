@@ -13,6 +13,10 @@
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableSchema;
+import com.google.datastore.v1.*;
+import com.google.datastore.v1.client.Datastore;
+import com.google.datastore.v1.client.DatastoreException;
+import com.google.datastore.v1.client.DatastoreHelper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.beam.sdk.Pipeline;
@@ -29,10 +33,17 @@ import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.security.GeneralSecurityException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static com.google.datastore.v1.client.DatastoreHelper.makeFilter;
+import static com.google.datastore.v1.client.DatastoreHelper.makeValue;
 
 public class HappinessPipeline {
     private static final String COUNTRY_COLUMN = "COUNTRY";
@@ -45,31 +56,31 @@ public class HappinessPipeline {
         private String location;
         private double sentiment;
 
-        public TweetEntity() {
+        TweetEntity() {
             this.sentiment = 0;
         }
 
-        public String getText() {
+        String getText() {
             return text;
         }
 
-        public void setText(String text) {
+        void setText(String text) {
             this.text = text;
         }
 
-        public String getLocation() {
+        String getLocation() {
             return location;
         }
 
-        public void setLocation(String location) {
+        void setLocation(String location) {
             this.location = location;
         }
 
-        public double getSentiment() {
+        double getSentiment() {
             return sentiment;
         }
 
-        public void setSentiment(double sentiment) {
+        void setSentiment(double sentiment) {
             this.sentiment = sentiment;
         }
     }
@@ -142,10 +153,53 @@ public class HappinessPipeline {
      * creates key/value pairs for the tweets where each tweet's key is the country in which it's written
      */
     static class MapTweetsByCountry extends SimpleFunction<TweetEntity, KV<String, Double>> {
+        private static final Logger LOG = LoggerFactory.getLogger(MapTweetsByCountry.class);
+
+        private Entity runQuery(Query query) {
+            Entity entity = null;
+            try {
+                Datastore datastore = DatastoreHelper.getDatastoreFromEnv();
+                RunQueryRequest.Builder request = RunQueryRequest.newBuilder();
+                request.setQuery(query);
+                RunQueryResponse response = datastore.runQuery(request.build());
+                int resultCount = response.getBatch().getEntityResultsCount();
+                EntityResult result = null;
+                if (resultCount > 0) {
+                    LOG.info("result count is greater than 0");
+                    result = response.getBatch().getEntityResults(0);
+                    entity = result.getEntity();
+                }
+            } catch(DatastoreException e) {
+                System.err.println("Error talking to the datastore: " + e.getMessage());
+                System.exit(2);
+            } catch (GeneralSecurityException exception) {
+                System.err.println("Security error connecting to the datastore: " + exception.getMessage());
+                System.exit(2);
+            } catch (IOException exception) {
+                System.err.println("I/O error connecting to the datastore: " + exception.getMessage());
+                System.exit(2);
+            }
+            return entity;
+        }
+
         @Override
         public KV<String, Double> apply(TweetEntity tweet) {
-            //get country using Google Maps API
-            return KV.of("US", tweet.getSentiment());
+            String[] locationTokens = tweet.getLocation().split(",");
+            String countryOfOrigin = "";
+            LOG.info(tweet.getLocation());
+            for (String token : locationTokens){
+                LOG.info("token: " + token);
+            }
+            Query.Builder q = Query.newBuilder();
+            q.addKindBuilder().setName("world_city");
+            q.setFilter(makeFilter("city_ascii", PropertyFilter.Operator.EQUAL, makeValue(locationTokens[0])));
+            Entity result = runQuery(q.build());
+            if (result != null) {
+                Map<String, Value> resultMap = result.getPropertiesMap();
+                countryOfOrigin = resultMap.get("country").getStringValue();
+                LOG.info("country of origin: " + countryOfOrigin);
+            }
+            return KV.of(countryOfOrigin, tweet.getSentiment());
         }
     }
 

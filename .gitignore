@@ -14,3 +14,4 @@ __pycache__/
 target/
 
 /webapp/node_modules/
+/twitter/tmp/
