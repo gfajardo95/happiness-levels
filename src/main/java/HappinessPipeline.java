@@ -226,14 +226,6 @@ public class HappinessPipeline {
         Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
         Pipeline pipeline = Pipeline.create(options);
 
-        List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName(COUNTRY_COLUMN).setType
-                ("STRING"));
-        fields.add(new TableFieldSchema().setName(SENTIMENT_COLUMN).setType
-                ("FLOAT"));
-        fields.add(new TableFieldSchema().setName(CREATED_DATE_COLUMN).setType("DATETIME"));
-        TableSchema schema = new TableSchema().setFields(fields);
-
         pipeline.apply(PubsubIO.readStrings().fromTopic(options.getInputTopic()))
                 .apply(new AnalyzeSentiment())
                 .apply(Window.<TweetEntity>into(FixedWindows.of(Duration.standardMinutes(2))))
@@ -241,7 +233,6 @@ public class HappinessPipeline {
                 .apply(Mean.<String, Double>perKey())
                 .apply(new SentimentDataToString())
                 .apply(PubsubIO.writeStrings().to(options.getOutputTopic()));
-
         pipeline.run().waitUntilFinish();
     }
 }
