@@ -60,6 +60,8 @@ public class HappinessPipeline {
             this.sentiment = 0;
         }
 
+        TweetEntity(String t, String l, double s) { this.text = t; this.location = l; this.sentiment = s; }
+
         String getText() {
             return text;
         }
@@ -117,7 +119,7 @@ public class HappinessPipeline {
     static class GetSentiment extends DoFn<TweetEntity, TweetEntity> {
         @ProcessElement
         public void ProcessElement(ProcessContext c) {
-            TweetEntity tw = c.element();
+            TweetEntity tw = new TweetEntity(c.element().getText(), c.element().getLocation(), c.element().getSentiment());
             SentimentAnalyzer analyzer = new SentimentAnalyzer();
             double sentiment = analyzer.getSentimentFromText(tw.getText());
             tw.setSentiment(sentiment);
