@@ -231,6 +231,16 @@ public class HappinessPipeline {
         }
     }
 
+    private static TableSchema createCountrySentimentDateTableSchema() {
+        List<TableFieldSchema> fields = new ArrayList<>();
+        fields.add(new TableFieldSchema().setName(COUNTRY_COLUMN).setType
+                ("STRING"));
+        fields.add(new TableFieldSchema().setName(SENTIMENT_COLUMN).setType
+                ("FLOAT"));
+        fields.add(new TableFieldSchema().setName(CREATED_DATE_COLUMN).setType("DATETIME"));
+        return new TableSchema().setFields(fields);
+    }
+
     public interface Options extends PipelineOptions {
         @Description("Pub/Sub topic to get input from")
         @Validation.Required
@@ -248,13 +258,7 @@ public class HappinessPipeline {
         Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
         Pipeline pipeline = Pipeline.create(options);
 
-        List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName(COUNTRY_COLUMN).setType
-                ("STRING"));
-        fields.add(new TableFieldSchema().setName(SENTIMENT_COLUMN).setType
-                ("FLOAT"));
-        fields.add(new TableFieldSchema().setName(CREATED_DATE_COLUMN).setType("DATETIME"));
-        TableSchema schema = new TableSchema().setFields(fields);
+        TableSchema schema = createCountrySentimentDateTableSchema();
 
         pipeline.apply(PubsubIO.readStrings().fromTopic(options.getTopic()))
                 .apply(new AnalyzeSentiment())
@@ -263,8 +267,7 @@ public class HappinessPipeline {
                 .apply(Mean.<String, Double>perKey())
                 .apply(MapElements.via(new TweetDataToTableRow()))
                 .apply(BigQueryIO.writeTableRows()
-                        .to("happiness-level:global_sentiment_levels.country_sentiment")  // change this to your own
-                                                                                          // BigQuery dataset
+                        .to("happiness-level:global_sentiment_levels.country_sentiment")
                         .withSchema(schema)
                         .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND));
 
