@@ -50,6 +50,7 @@ public class HappinessPipeline {
     private static final String COUNTRY_COLUMN = "COUNTRY";
     private static final String SENTIMENT_COLUMN = "AVERAGE_SENTIMENT";
     private static final String CREATED_DATE_COLUMN = "CREATION_DATE";
+    private static final SentimentAnalyzer ANALYZER = new SentimentAnalyzer();
 
     @DefaultCoder(AvroCoder.class)
     static class TweetEntity {
@@ -60,6 +61,8 @@ public class HappinessPipeline {
         TweetEntity() {
             this.sentiment = 0;
         }
+
+        TweetEntity(String t, String l, double s) { this.text = t; this.location = l; this.sentiment = s; }
 
         String getText() {
             return text;
@@ -91,15 +94,16 @@ public class HappinessPipeline {
      * The list of 'tweets' in the Map are encoded to Avro and returned for further
      * pipeline execution
      */
-    static class ExtractTweetsFn extends DoFn<String, TweetEntity> {
+    static class ExtractTweets extends DoFn<String, TweetEntity> {
+        private static final Logger LOG = LoggerFactory.getLogger(MapTweetsByCountry.class);
+
         @ProcessElement
         public void ProcessElement(ProcessContext c) {
             byte[] decodedBytes = Base64.getUrlDecoder().decode(c.element());
             String decodedString = new String(decodedBytes);
 
             Gson gson = new Gson();
-            Type type = new TypeToken<
-                    Map<String, List<Map<String, TweetEntity>>>>() {
+            Type type = new TypeToken<Map<String, List<Map<String, TweetEntity>>>>(){
             }.getType();
             Map<String, List<Map<String, TweetEntity>>> twraw = gson.fromJson(decodedString, type);
             List<Map<String, TweetEntity>> twmessages = twraw.get("messages");
@@ -108,7 +112,6 @@ public class HappinessPipeline {
                 TweetEntity tw = message.get("data");
                 c.output(tw);
             }
-
         }
     }
 
@@ -119,9 +122,8 @@ public class HappinessPipeline {
     static class GetSentiment extends DoFn<TweetEntity, TweetEntity> {
         @ProcessElement
         public void ProcessElement(ProcessContext c) {
-            TweetEntity tw = c.element();
-            SentimentAnalyzer analyzer = new SentimentAnalyzer();
-            double sentiment = analyzer.getSentimentFromText(tw.getText());
+            TweetEntity tw = new TweetEntity(c.element().getText(), c.element().getLocation(), c.element().getSentiment());
+            double sentiment = ANALYZER.getSentimentFromText(tw.getText());
             tw.setSentiment(sentiment);
             c.output(tw);
         }
@@ -133,9 +135,21 @@ public class HappinessPipeline {
      */
     static class AnalyzeSentiment extends PTransform<PCollection<String>, PCollection<TweetEntity>> {
         public PCollection<TweetEntity> expand(PCollection<String> messages) {
-            PCollection<TweetEntity> tweets = messages.apply(ParDo.of(new ExtractTweetsFn()));
+            return messages
+                    .apply(ParDo.of(new ExtractTweets()))
+                    .apply(ParDo.of(new GetSentiment()));
+        }
+    }
 
-            return tweets.apply(ParDo.of(new GetSentiment()));
+    static class SentimentDataToString extends PTransform<PCollection<KV<String, Double>>, PCollection<String>> {
+        public PCollection<String> expand (PCollection<KV<String, Double>> row) {
+            return row.apply(ParDo.of(new DoFn<KV<String, Double>, String>() {
+                @ProcessElement
+                public void ProcessElement(ProcessContext c){
+                    c.output(c.element().getKey() + ": " + c.element().getValue() + ", " + new SimpleDateFormat(
+                            "yyyy-MM-dd HH:mm:ss").format(new Date()));
+                }
+            }));
         }
     }
 
@@ -155,7 +169,6 @@ public class HappinessPipeline {
                 int resultCount = response.getBatch().getEntityResultsCount();
                 EntityResult result = null;
                 if (resultCount > 0) {
-                    LOG.info("result count is greater than 0");
                     result = response.getBatch().getEntityResults(0);
                     entity = result.getEntity();
                 }
@@ -172,23 +185,39 @@ public class HappinessPipeline {
             return entity;
         }
 
+        private String getCountryOfOrigin(Entity queryResult) {
+            Map<String, Value> resultMap = queryResult.getPropertiesMap();
+            return resultMap.get("country").getStringValue();
+        }
+
+        // adding this new logic is major change to the pipeline
         @Override
         public KV<String, Double> apply(TweetEntity tweet) {
             String[] locationTokens = tweet.getLocation().split(",");
             String countryOfOrigin = "";
             LOG.info(tweet.getLocation());
-            for (String token : locationTokens){
-                LOG.info("token: " + token);
-            }
             Query.Builder q = Query.newBuilder();
             q.addKindBuilder().setName("world_city");
-            q.setFilter(makeFilter("city_ascii", PropertyFilter.Operator.EQUAL, makeValue(locationTokens[0])));
-            Entity result = runQuery(q.build());
-            if (result != null) {
-                Map<String, Value> resultMap = result.getPropertiesMap();
-                countryOfOrigin = resultMap.get("country").getStringValue();
-                LOG.info("country of origin: " + countryOfOrigin);
+            for (String token : locationTokens) {
+                LOG.info("token: " + token);
+                // city query
+                q.setFilter(makeFilter("city_ascii", PropertyFilter.Operator.EQUAL, makeValue(token)));
+                Entity result = runQuery(q.build());
+                if (result != null) {
+                    countryOfOrigin = getCountryOfOrigin(result);
+                    LOG.info("[from city query] country of origin: " + countryOfOrigin);
+                    return KV.of(countryOfOrigin, tweet.getSentiment());
+                }
+                // country query
+                q.setFilter(makeFilter("country", PropertyFilter.Operator.EQUAL, makeValue(token)));
+                result = runQuery(q.build());
+                if (result != null) {
+                    countryOfOrigin = getCountryOfOrigin(result);
+                    LOG.info("[from country query] country of origin: " + countryOfOrigin);
+                    return KV.of(countryOfOrigin, tweet.getSentiment());
+                }
             }
+
             return KV.of(countryOfOrigin, tweet.getSentiment());
         }
     }
