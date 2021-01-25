@@ -1,8 +1,5 @@
 package transforms;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
@@ -15,7 +12,6 @@ public class SentimentDataToStringTest {
 
     @Rule
     public final transient TestPipeline testPipeline = TestPipeline.create();
-
 
     @Test
     public void testExpandCanReturnCountryMappingWithDate() {
