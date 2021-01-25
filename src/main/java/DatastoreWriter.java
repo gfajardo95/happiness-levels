@@ -17,6 +17,11 @@ import org.apache.beam.sdk.transforms.ParDo;
 
 public class DatastoreWriter {
     static class CreateEntityFn extends DoFn<String, Entity> {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+
         private Entity makeEntity(String content) {
             String[] props = content.split(",");
             com.google.datastore.v1.Key key = com.google.datastore.v1.Key.newBuilder()
