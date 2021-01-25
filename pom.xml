@@ -11,8 +11,7 @@
 <packaging>jar</packaging>
 
 <properties>
-    <beam.version>2.2.0</beam.version>
-
+    <beam.version>2.27.0</beam.version>
     <bigquery.version>v2-rev355-1.22.0</bigquery.version>
     <google-clients.version>1.22.0</google-clients.version>
     <guava.version>20.0</guava.version>
@@ -272,6 +271,14 @@
         <artifactId>guava</artifactId>
         <version>${guava.version}</version>
     </dependency>
+
+    <dependency>
+		<groupId>org.projectlombok</groupId>
+		<artifactId>lombok</artifactId>
+		<optional>true</optional>
+        <version>1.18.16</version>
+        <scope>provided</scope>
+	</dependency>
 
     <!-- Add slf4j API frontend binding with JUL backend -->
     <dependency>
