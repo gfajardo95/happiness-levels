@@ -1,8 +1,5 @@
 package transforms;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
