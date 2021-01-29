@@ -1,7 +1,9 @@
+import os
+
 import tweepy
+from streamer import TweetStreamListener
 
 import settings
-from streamer import TweetStreamListener
 
 
 def publish_twitter_stream():

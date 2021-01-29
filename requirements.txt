@@ -11,7 +11,7 @@ google-cloud-pubsub==0.32.0
 google-resumable-media==0.3.1
 googleapis-common-protos==1.5.3
 grpc-google-iam-v1==0.11.4
-grpcio==1.10.0
+grpcio==1.35.0
 idna==2.6
 isort==4.2.15
 lazy-object-proxy==1.3.1
@@ -23,11 +23,13 @@ pyasn1==0.4.2
 pyasn1-modules==0.2.1
 pycodestyle==2.3.1
 pylint==1.7.5
+PySocks==1.7.1
+python-dotenv==0.15.0
 pytz==2018.3
 requests==2.18.4
 requests-oauthlib==0.8.0
 rsa==3.4.2
 six==1.11.0
-tweepy==3.5.0
+tweepy==3.10.0
 urllib3==1.22
 wrapt==1.10.11
