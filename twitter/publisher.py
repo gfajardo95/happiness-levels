@@ -1,5 +1,3 @@
-import os
-
 import tweepy
 from streamer import TweetStreamListener
 
