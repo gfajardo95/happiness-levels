@@ -33,26 +33,31 @@ class TweetStreamListener(StreamListener):
         # tweets without a location are not published to the topic
         if not status.user.location:
             return
-        # relevant tweet data
+
+        # extract relevant tweet data
         text = status.text
         retweets = status.retweet_count
         loc = status.user.location
         bio = status.user.description
         tw = dict(text=text, retweets=retweets, location=loc,
                     bio=bio)
-        # print(tw)
+
         self.tweets.append(tw)
+        self.count += 1
+
         if len(self.tweets) >= self.batch_size:
+            print("publishing tweet stream")
             self.write_to_pubsub(self.tweets)
             self.tweets = []
 
-        self.count += 1
         if (self.count % 50) == 0:
             print("count is: {}".format(self.count))
+
         if self.count >= self.total_tweets:
             return False
 
         return True
 
     def on_error(self, status_code):
-        print(status_code)
+        print("error: {}".format(status_code))
+        return False
