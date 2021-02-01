@@ -6,6 +6,9 @@ import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class SentimentDataToString extends PTransform<PCollection<KV<String, Double>>, PCollection<String>> {
     /**
      *
@@ -21,7 +24,9 @@ public class SentimentDataToString extends PTransform<PCollection<KV<String, Dou
 
             @ProcessElement
             public void ProcessElement(ProcessContext c) {
-                c.output(c.element().getKey() + ": " + c.element().getValue());
+                String sentimentOfCountry = c.element().getKey() + ": " + c.element().getValue();
+                log.info(sentimentOfCountry);
+                c.output(sentimentOfCountry);
             }
         }));
     }
