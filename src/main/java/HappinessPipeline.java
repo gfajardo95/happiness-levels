@@ -1,3 +1,4 @@
+
 /**
  * <p>To execute this pipeline, specify the pipeline configuration like this:
  * <pre>{@code
@@ -31,11 +32,11 @@ import transforms.SentimentDataToString;
 public class HappinessPipeline {
 
     public interface Options extends PipelineOptions {
-        @Description("Pub/Sub topic to get input from")
+        @Description("Pub/Sub subscription to get input from")
         @Validation.Required
-        String getInputTopic();
+        String getInputSubscription();
 
-        void setInputTopic(String value);
+        void setInputSubscription(String value);
 
         @Description("Pub/Sub topic to send output to")
         @Validation.Required
@@ -52,7 +53,7 @@ public class HappinessPipeline {
         Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
         Pipeline pipeline = Pipeline.create(options);
 
-        pipeline.apply(PubsubIO.readStrings().fromTopic(options.getInputTopic()))
+        pipeline.apply(PubsubIO.readStrings().fromSubscription(options.getInputSubscription()))
                 .apply(new AnalyzeSentiment())
                 .apply(Window.<Tweet>into(FixedWindows.of(Duration.standardMinutes(2))))
                 .apply(MapElements.via(new MapTweetsByCountry()))
