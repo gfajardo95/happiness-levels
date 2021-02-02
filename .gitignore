@@ -16,3 +16,4 @@ target/
 /webapp/node_modules/
 /twitter/tmp/
 run-command.txt
+.env

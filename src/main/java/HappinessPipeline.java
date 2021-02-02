@@ -1,11 +1,12 @@
+
 /**
  * <p>To execute this pipeline, specify the pipeline configuration like this:
  * <pre>{@code
  *   --project=YOUR_PROJECT_ID
+ *   --region=COMPUTE_REGION
  *   --tempLocation=gs://YOUR_TEMP_DIRECTORY
  *   --runner=YOUR_RUNNER
- *   --dataset=YOUR-DATASET
- *   --inputTopic=projects/YOUR_PROJECT_ID/topics/YOUR_INPUT_TOPIC
+ *   --inputSubscription=projects/YOUR_PROJECT_ID/subscriptions/YOUR_INPUT_TOPIC
  *   --outputTopic=projects/YOUR_PROJECT_ID/topics/YOUR_OUTPUT_TOPIC
  * }
  * </pre>
@@ -31,11 +32,11 @@ import transforms.SentimentDataToString;
 public class HappinessPipeline {
 
     public interface Options extends PipelineOptions {
-        @Description("Pub/Sub topic to get input from")
+        @Description("Pub/Sub subscription to get input from")
         @Validation.Required
-        String getInputTopic();
+        String getInputSubscription();
 
-        void setInputTopic(String value);
+        void setInputSubscription(String value);
 
         @Description("Pub/Sub topic to send output to")
         @Validation.Required
@@ -52,9 +53,9 @@ public class HappinessPipeline {
         Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
         Pipeline pipeline = Pipeline.create(options);
 
-        pipeline.apply(PubsubIO.readStrings().fromTopic(options.getInputTopic()))
+        pipeline.apply(PubsubIO.readStrings().fromSubscription(options.getInputSubscription()))
                 .apply(new AnalyzeSentiment())
-                .apply(Window.<Tweet>into(FixedWindows.of(Duration.standardMinutes(2))))
+                .apply(Window.<Tweet>into(FixedWindows.of(Duration.millis(200))))
                 .apply(MapElements.via(new MapTweetsByCountry()))
                 .apply(Mean.<String, Double>perKey())
                 .apply(new SentimentDataToString())

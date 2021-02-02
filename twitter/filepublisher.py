@@ -1,5 +1,3 @@
-import base64
-
 from google.cloud import pubsub
 
 import settings

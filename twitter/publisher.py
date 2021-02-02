@@ -1,7 +1,7 @@
 import tweepy
+from streamer import TweetStreamListener
 
 import settings
-from streamer import TweetStreamListener
 
 
 def publish_twitter_stream():
@@ -11,7 +11,7 @@ def publish_twitter_stream():
 
     stream_listener = TweetStreamListener()
     stream = tweepy.Stream(auth=api.auth, listener=stream_listener)
-    stream.filter(track=["soccer"])
+    stream.filter(track=["feel", "felt", "experiencing", "I am"])
 
 
 if __name__ == '__main__':
