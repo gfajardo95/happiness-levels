@@ -24,7 +24,7 @@ class TweetStreamListener(StreamListener):
     count = 0
     tweets = []
     batch_size = 100
-    total_tweets = 100
+    total_tweets = 200
 
     def write_to_pubsub(self, tw):
         publish(self.client, self.topic_path, tw)
