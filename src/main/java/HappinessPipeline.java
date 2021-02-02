@@ -3,10 +3,10 @@
  * <p>To execute this pipeline, specify the pipeline configuration like this:
  * <pre>{@code
  *   --project=YOUR_PROJECT_ID
+ *   --region=COMPUTE_REGION
  *   --tempLocation=gs://YOUR_TEMP_DIRECTORY
  *   --runner=YOUR_RUNNER
- *   --dataset=YOUR-DATASET
- *   --inputTopic=projects/YOUR_PROJECT_ID/topics/YOUR_INPUT_TOPIC
+ *   --inputSubscription=projects/YOUR_PROJECT_ID/subscriptions/YOUR_INPUT_TOPIC
  *   --outputTopic=projects/YOUR_PROJECT_ID/topics/YOUR_OUTPUT_TOPIC
  * }
  * </pre>
@@ -55,7 +55,7 @@ public class HappinessPipeline {
 
         pipeline.apply(PubsubIO.readStrings().fromSubscription(options.getInputSubscription()))
                 .apply(new AnalyzeSentiment())
-                .apply(Window.<Tweet>into(FixedWindows.of(Duration.standardMinutes(2))))
+                .apply(Window.<Tweet>into(FixedWindows.of(Duration.millis(200))))
                 .apply(MapElements.via(new MapTweetsByCountry()))
                 .apply(Mean.<String, Double>perKey())
                 .apply(new SentimentDataToString())
