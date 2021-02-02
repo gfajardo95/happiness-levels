@@ -1,1 +1,0 @@
-mvn compile exec:java -Dexec.mainClass=HappinessPipeline -Dexec.args="--runner=DataFlowRunner --project=happiness-level --gcpTempLocation=gs://dataflow-happiness-level/tmp --inputTopic=projects/happiness-level/topics/tweets --outputTopic=projects/happiness-level/topics/country-sentiments --workerMachineType=n1-standard-1 --maxNumWorkers=2" -Pdataflow-runner
