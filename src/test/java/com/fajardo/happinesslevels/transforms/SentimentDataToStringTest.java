@@ -1,4 +1,4 @@
-package transforms;
+package com.fajardo.happinesslevels.transforms;
 
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;

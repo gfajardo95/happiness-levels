@@ -1,9 +1,9 @@
-package transforms;
+package com.fajardo.happinesslevels.transforms;
+
+import com.fajardo.happinesslevels.models.Tweet;
+import com.fajardo.happinesslevels.services.SentimentAnalyzer;
 
 import org.apache.beam.sdk.transforms.DoFn;
-
-import models.Tweet;
-import services.SentimentAnalyzer;
 
 /**
  * using the Stanford CoreNLP library, the sentiment of every tweet is

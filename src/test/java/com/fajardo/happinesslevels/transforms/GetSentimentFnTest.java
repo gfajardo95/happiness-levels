@@ -1,4 +1,6 @@
-package transforms;
+package com.fajardo.happinesslevels.transforms;
+
+import com.fajardo.happinesslevels.models.Tweet;
 
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
@@ -7,8 +9,6 @@ import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
 import org.junit.Rule;
 import org.junit.Test;
-
-import models.Tweet;
 
 public class GetSentimentFnTest {
 

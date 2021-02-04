@@ -1,4 +1,4 @@
-package services;
+package com.fajardo.happinesslevels.services;
 
 import static com.google.datastore.v1.client.DatastoreHelper.makeFilter;
 import static com.google.datastore.v1.client.DatastoreHelper.makeValue;

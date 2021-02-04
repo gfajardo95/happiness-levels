@@ -1,4 +1,11 @@
+package com.fajardo.happinesslevels;
+
 import java.util.Base64;
+
+import com.fajardo.happinesslevels.models.Tweet;
+import com.fajardo.happinesslevels.transforms.AnalyzeSentiment;
+import com.fajardo.happinesslevels.transforms.MapTweetsByCountry;
+import com.fajardo.happinesslevels.transforms.SentimentDataToString;
 
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
@@ -14,11 +21,6 @@ import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.junit.Rule;
 import org.junit.Test;
-
-import models.Tweet;
-import transforms.AnalyzeSentiment;
-import transforms.MapTweetsByCountry;
-import transforms.SentimentDataToString;
 
 public class HappinessPipelineTest {
 

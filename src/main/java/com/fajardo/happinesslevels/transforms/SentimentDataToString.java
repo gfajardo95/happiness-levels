@@ -1,4 +1,4 @@
-package transforms;
+package com.fajardo.happinesslevels.transforms;
 
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;

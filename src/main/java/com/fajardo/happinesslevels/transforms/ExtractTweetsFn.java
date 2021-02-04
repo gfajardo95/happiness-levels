@@ -1,16 +1,15 @@
-package transforms;
+package com.fajardo.happinesslevels.transforms;
 
 import java.lang.reflect.Type;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+import com.fajardo.happinesslevels.models.Tweet;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.apache.beam.sdk.transforms.DoFn;
-
-import models.Tweet;
 
 /**
  * decodes base64 encoded messages from a Pub/Sub topic into an equivalent Map.

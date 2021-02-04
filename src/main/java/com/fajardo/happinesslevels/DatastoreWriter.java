@@ -1,3 +1,5 @@
+package com.fajardo.happinesslevels;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

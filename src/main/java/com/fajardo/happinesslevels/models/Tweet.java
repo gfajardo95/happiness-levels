@@ -1,4 +1,4 @@
-package models;
+package com.fajardo.happinesslevels.models;
 
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;

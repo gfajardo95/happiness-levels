@@ -1,10 +1,10 @@
-package transforms;
+package com.fajardo.happinesslevels.transforms;
 
 import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.values.KV;
 
 import lombok.extern.slf4j.Slf4j;
-import models.Tweet;
+import com.fajardo.happinesslevels.models.Tweet;
 
 /**
  * creates key/value pairs for the tweets where each tweet's key is the country

@@ -1,10 +1,10 @@
-package transforms;
+package com.fajardo.happinesslevels.transforms;
+
+import com.fajardo.happinesslevels.models.Tweet;
 
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
-
-import models.Tweet;
 
 /**
  * Tweets are collected from a Pub/Sub topic. The sentiment of the messages are

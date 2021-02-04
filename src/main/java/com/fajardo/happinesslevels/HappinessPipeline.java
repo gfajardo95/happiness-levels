@@ -1,3 +1,9 @@
+package com.fajardo.happinesslevels;
+
+import com.fajardo.happinesslevels.models.Tweet;
+import com.fajardo.happinesslevels.transforms.AnalyzeSentiment;
+import com.fajardo.happinesslevels.transforms.MapTweetsByCountry;
+import com.fajardo.happinesslevels.transforms.SentimentDataToString;
 
 /**
  * <p>To execute this pipeline, specify the pipeline configuration like this:
@@ -23,11 +29,6 @@ import org.apache.beam.sdk.transforms.Mean;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.joda.time.Duration;
-
-import models.Tweet;
-import transforms.AnalyzeSentiment;
-import transforms.MapTweetsByCountry;
-import transforms.SentimentDataToString;
 
 public class HappinessPipeline {
 
