@@ -20,7 +20,7 @@ public class SentimentDataToStringTest {
         PCollection<KV<String, Double>> input = testPipeline.apply(Create.of(countryMapping));
         PCollection<String> output = input.apply(new SentimentDataToString());
 
-        PAssert.that(output).containsInAnyOrder("USA: 4.0");
+        PAssert.that(output).containsInAnyOrder("{\"country\":\"USA\",\"averageSentiment\":4.0}");
 
         testPipeline.run();
     }

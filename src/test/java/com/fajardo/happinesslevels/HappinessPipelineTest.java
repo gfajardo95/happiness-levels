@@ -60,12 +60,12 @@ public class HappinessPipelineTest {
         PAssert
             .that(output)
             .inWindow(new IntervalWindow(baseTime, windowDuration))
-            .containsInAnyOrder("USA: 3.0");
+            .containsInAnyOrder("{\"country\":\"USA\",\"averageSentiment\":3.0}");
 
         PAssert
             .that(output)
             .inWindow(new IntervalWindow(baseTime.plus(windowDuration), windowDuration))
-            .containsInAnyOrder("USA: 2.0");
+            .containsInAnyOrder("{\"country\":\"USA\",\"averageSentiment\":2.0}");
 
         testPipeline.run();
     }

@@ -1,5 +1,8 @@
 package com.fajardo.happinesslevels.transforms;
 
+import com.fajardo.happinesslevels.models.CountrySentiment;
+import com.google.gson.Gson;
+
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -24,9 +27,11 @@ public class SentimentDataToString extends PTransform<PCollection<KV<String, Dou
 
             @ProcessElement
             public void ProcessElement(ProcessContext c) {
-                String sentimentOfCountry = c.element().getKey() + ": " + c.element().getValue();
-                log.info(sentimentOfCountry);
-                c.output(sentimentOfCountry);
+                Gson gson = new Gson();
+                CountrySentiment countrySentiment = new CountrySentiment(c.element().getKey(), c.element().getValue());
+                log.info("{}: {}", countrySentiment.getCountry(), countrySentiment.getAverageSentiment());
+
+                c.output(gson.toJson(countrySentiment));
             }
         }));
     }
