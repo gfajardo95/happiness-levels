@@ -1,5 +1,8 @@
 package com.fajardo.happinesslevels.controllers;
 
+import java.io.File;
+import java.io.IOException;
+
 import com.fajardo.happinesslevels.models.CountrySentiment;
 import com.fajardo.happinesslevels.models.CountrySentimentRequest;
 import com.google.gson.Gson;
@@ -26,17 +29,31 @@ public class CountrySentimentsController implements CountrySentiments {
         log.info("Requesting country sentiments from \"topics/{}/subscriptions/{}\"", request.getProjectId(),
                 request.getSubscriptionId());
 
-        // TODO: start the pipeline
+        runPipeline();
 
         return reactiveFactory
             .poll(request.getSubscriptionId(), 500)
             .doOnNext(message -> {
-                log.info("Received message {} published {}",
-                message.getPubsubMessage().getMessageId(),
-                message.getPubsubMessage().getPublishTime());
+                log.info("Received message: {} -- published {}",
+                    message.getPubsubMessage().getData().toStringUtf8(),
+                    message.getPubsubMessage().getPublishTime());
 
                 message.ack();
             })
-            .map(message -> gson.fromJson(message.getPubsubMessage().getData().toStringUtf8(), CountrySentiment.class));
+            .map(message -> gson.fromJson(
+                message.getPubsubMessage().getData().toStringUtf8(),
+                CountrySentiment.class));
+    }
+
+    private void runPipeline() {
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder()
+                    .command("zsh", "-c", ". venv/bin/activate && python3 run_pipeline.py")
+                    .directory(new File(System.getProperty("user.dir"))).redirectErrorStream(true);
+
+            processBuilder.inheritIO().start();
+        } catch (IOException e) {
+            log.error("Error running the pipeline", e);
+        }
     }
 }
