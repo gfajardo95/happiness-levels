@@ -23,13 +23,9 @@ export default class HappinessBarChart extends React.Component {
                 metadata: IdentitySerializer
             },
             setup: {
-                // ms btw sending keepalive to server
-                keepAlive: 90000,
-                // ms timeout if no keepalive response
+                keepAlive: 180000,
                 lifetime: 180000,
-                // format of `data`
                 dataMimeType: 'application/json',
-                // format of `metadata`
                 metadataMimeType: 'message/x.rsocket.routing.v0',
             },
             transport: new RSocketWebSocketClient({
@@ -88,15 +84,15 @@ export default class HappinessBarChart extends React.Component {
     }
 
     render() {
-        return (  // TODO: set a max height and only re-render the bar, not the entire chart
+        return (
             <BarChart width={600} height={300} data={this.state.countrySentiments.slice()}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="country" />
-                <YAxis />
+                <YAxis domain={[0, 5]} tickCount={6}/>
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="averageSentiment" fill="#8884d8" />
+                <Bar dataKey="averageSentiment" fill="#8884d8" maxBarSize={200}/>
             </BarChart>
         );
     }
