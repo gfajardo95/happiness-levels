@@ -37,9 +37,7 @@ public class CountrySentimentsController implements CountrySentiments {
         return reactiveFactory
             .poll(request.getSubscriptionId(), 500)
             .doOnNext(message -> {
-                log.info("Received message: {} -- published {}",
-                    message.getPubsubMessage().getData().toStringUtf8(),
-                    message.getPubsubMessage().getPublishTime());
+                log.info("Received message: {}", message.getPubsubMessage().getData().toStringUtf8());
 
                 message.ack();
             })
