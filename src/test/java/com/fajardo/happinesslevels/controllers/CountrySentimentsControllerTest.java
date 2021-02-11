@@ -11,10 +11,8 @@ import com.fajardo.happinesslevels.models.CountrySentimentRequest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
-import org.springframework.cloud.gcp.pubsub.support.AcknowledgeablePubsubMessage;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -25,9 +23,6 @@ import reactor.test.StepVerifier;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = HappinessLevelsApplication.class)
 public class CountrySentimentsControllerTest {
-
-    @Mock
-    private Flux<AcknowledgeablePubsubMessage> pubsubMessageStream;
 
     @Autowired
     private PubSubTemplate pubsubTemplate;
