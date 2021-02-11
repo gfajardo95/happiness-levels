@@ -5,9 +5,10 @@ import java.io.IOException;
 
 import com.fajardo.happinesslevels.PipelineProperties;
 import com.fajardo.happinesslevels.models.CountrySentiment;
+import com.google.cloud.pubsub.v1.Subscriber;
 import com.google.gson.Gson;
 
-import org.springframework.cloud.gcp.pubsub.reactive.PubSubReactiveFactory;
+import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
@@ -20,7 +21,7 @@ import reactor.core.publisher.Flux;
 @Controller
 public class CountrySentimentsController implements CountrySentiments {
 
-    private final PubSubReactiveFactory reactiveFactory;
+    private final PubSubTemplate pubsubTemplate;
 
     private final PipelineProperties pipelineProps;
 
@@ -33,16 +34,19 @@ public class CountrySentimentsController implements CountrySentiments {
 
         runPipeline();
 
-        return reactiveFactory
-            .poll(subscriptionId, 500)
-            .doOnNext(message -> {
-                log.info("Received message: {}", message.getPubsubMessage().getData().toStringUtf8());
-
+        return Flux.create(emitter -> {
+            Subscriber subscriber = pubsubTemplate.subscribe(subscriptionId, (message) -> {
                 message.ack();
-            })
-            .map(message -> gson.fromJson(
-                message.getPubsubMessage().getData().toStringUtf8(),
-                CountrySentiment.class));
+
+                log.info("Received message: {}", message.getPubsubMessage().getData().toStringUtf8());
+                emitter.next(
+                        gson.fromJson(message.getPubsubMessage().getData().toStringUtf8(), CountrySentiment.class));
+            });
+
+            emitter.onDispose(() -> {
+                subscriber.stopAsync();
+            });
+        });
     }
 
     private void runPipeline() {
