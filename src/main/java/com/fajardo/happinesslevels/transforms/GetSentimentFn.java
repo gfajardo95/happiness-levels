@@ -15,7 +15,12 @@ public class GetSentimentFn extends DoFn<Tweet, Tweet> {
      */
     private static final long serialVersionUID = 1L;
 
-    private final SentimentAnalyzer analyzer = new SentimentAnalyzer();
+    private SentimentAnalyzer analyzer;
+
+    @Setup
+    public void setUp() {
+        analyzer = new SentimentAnalyzer();
+    }
 
     @ProcessElement
     public void ProcessElement(ProcessContext c) {
