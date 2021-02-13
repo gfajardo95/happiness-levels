@@ -45,7 +45,7 @@ public class SentimentAnalyzer {
             }
             
             log.info(tweet.getText() + ": " + mainSentiment);
-            tweetWithSentiment = new Tweet("", tweet.getLocation(), mainSentiment);
+            tweetWithSentiment = new Tweet("", tweet.getCountry(), mainSentiment);
         }
 
         return tweetWithSentiment;

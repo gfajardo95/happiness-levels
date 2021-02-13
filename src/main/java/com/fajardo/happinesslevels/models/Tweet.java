@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @DefaultCoder(AvroCoder.class)
 public class Tweet {
     private String text;
-    private String location;
+    private String country;
     private int sentiment;
 }
