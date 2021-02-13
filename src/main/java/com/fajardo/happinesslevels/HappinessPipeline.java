@@ -58,7 +58,7 @@ public class HappinessPipeline {
                 .apply(new AnalyzeSentiment())
                 .apply(Window.<Tweet>into(FixedWindows.of(Duration.millis(200))))
                 .apply(MapElements.via(new MapTweetsByCountry()))
-                .apply(Mean.<String, Double>perKey())
+                .apply(Mean.<String, Integer>perKey())
                 .apply(new SentimentDataToString())
                 .apply(PubsubIO.writeStrings().to(options.getOutputTopic()));
 

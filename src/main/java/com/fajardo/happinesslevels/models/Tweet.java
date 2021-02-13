@@ -14,5 +14,5 @@ import lombok.NoArgsConstructor;
 public class Tweet {
     private String text;
     private String location;
-    private double sentiment;
+    private int sentiment;
 }
