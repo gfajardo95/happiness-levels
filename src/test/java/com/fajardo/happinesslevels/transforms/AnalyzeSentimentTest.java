@@ -20,7 +20,7 @@ public class AnalyzeSentimentTest {
     @Test
     public void testExpandCalculatesTweetSentiment() {
         String testMessages = "{\"messages\": [{\"data\": {\"text\": \"happy\", \"location\": \"\"}}]}";
-        Tweet expectedTweet = new Tweet("happy", "", 4.0);
+        Tweet expectedTweet = new Tweet("", "", 4);
 
         PCollection<String> input = testPipeline.apply(Create.of(Base64.getEncoder().encodeToString(testMessages.getBytes())));
         PCollection<Tweet> output = input.apply(new AnalyzeSentiment());

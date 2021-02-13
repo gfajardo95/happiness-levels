@@ -25,7 +25,7 @@ public class ExtractTweetsFnTest {
         PCollection<String> input = testPipeline.apply(Create.of(Base64.getEncoder().encodeToString(testMessages.getBytes())));
         PCollection<Tweet> output = input.apply(ParDo.of(new ExtractTweetsFn()));
 
-        PAssert.that(output).containsInAnyOrder(new Tweet("TEST", "", 0.0));
+        PAssert.that(output).containsInAnyOrder(new Tweet("TEST", "", 0));
 
         testPipeline.run();
     }

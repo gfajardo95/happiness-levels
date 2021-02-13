@@ -18,9 +18,9 @@ public class GetSentimentFnTest {
     
     @Test
     public void testProcessElementSetsSentiment() {
-        Tweet expectedTweet = new Tweet("happy", "", 4.0);
+        Tweet expectedTweet = new Tweet("", "", 4);
         
-        PCollection<Tweet> input = testPipeline.apply(Create.of(new Tweet("happy", "", 0.0)));
+        PCollection<Tweet> input = testPipeline.apply(Create.of(new Tweet("happy", "", 0)));
         PCollection<Tweet> output = input.apply(ParDo.of(new GetSentimentFn()));
 
         PAssert.that(output).containsInAnyOrder(expectedTweet);
