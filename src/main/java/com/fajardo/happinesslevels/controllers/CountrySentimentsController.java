@@ -5,8 +5,9 @@ import java.io.IOException;
 
 import com.fajardo.happinesslevels.PipelineProperties;
 import com.fajardo.happinesslevels.models.CountrySentiment;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.pubsub.v1.Subscriber;
-import com.google.gson.Gson;
 
 import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -25,10 +26,11 @@ public class CountrySentimentsController implements CountrySentiments {
 
     private final PipelineProperties pipelineProps;
 
+    private final ObjectMapper objectMapper;
+
     @MessageMapping("country-sentiments")
     @Override
     public Flux<CountrySentiment> streamCountrySentiments(String subscriptionId) {
-        Gson gson = new Gson();
         log.info("Requesting country sentiments from \"topics/{}/subscriptions/{}\"",
                 System.getenv("GOOGLE_CLOUD_PROJECT"), subscriptionId);
 
@@ -39,8 +41,12 @@ public class CountrySentimentsController implements CountrySentiments {
                 message.ack();
 
                 log.info("Received message: {}", message.getPubsubMessage().getData().toStringUtf8());
-                emitter.next(
-                        gson.fromJson(message.getPubsubMessage().getData().toStringUtf8(), CountrySentiment.class));
+                try {
+                    emitter.next(objectMapper.readValue(message.getPubsubMessage().getData().toStringUtf8(),
+                            CountrySentiment.class));
+                } catch (JsonProcessingException e) {
+                    log.error("Error mapping the Pub/Sub message to a CountryMessage: {}", e);
+                }
             });
 
             emitter.onDispose(() -> {

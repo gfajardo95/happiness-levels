@@ -1,7 +1,8 @@
 package com.fajardo.happinesslevels.transforms;
 
 import com.fajardo.happinesslevels.models.CountrySentiment;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
@@ -18,6 +19,8 @@ public class SentimentDataToString extends PTransform<PCollection<KV<String, Dou
      */
     private static final long serialVersionUID = 1L;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     public PCollection<String> expand(PCollection<KV<String, Double>> row) {
         return row.apply(ParDo.of(new DoFn<KV<String, Double>, String>() {
             /**
@@ -27,11 +30,14 @@ public class SentimentDataToString extends PTransform<PCollection<KV<String, Dou
 
             @ProcessElement
             public void ProcessElement(ProcessContext c) {
-                Gson gson = new Gson();
                 CountrySentiment countrySentiment = new CountrySentiment(c.element().getKey(), c.element().getValue());
                 log.info("{}: {}", countrySentiment.getCountry(), countrySentiment.getAverageSentiment());
 
-                c.output(gson.toJson(countrySentiment));
+                try {
+                    c.output(objectMapper.writeValueAsString(countrySentiment));
+                } catch (JsonProcessingException e) {
+                    log.error("Error converting the CountrySentiment to a string: {}", e);
+                }
             }
         }));
     }
