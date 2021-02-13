@@ -19,12 +19,12 @@ public class MapTweetsByCountryTest {
 
     @Test
     public void testApplyMapsTweetToCountry() {
-        Tweet inputTweet = new Tweet("happy", "", 4);
+        Tweet inputTweet = new Tweet("happy", "United States", 4);
 
         PCollection<Tweet> input = testPipeline.apply(Create.of(inputTweet));
         PCollection<KV<String, Integer>> output = input.apply(MapElements.via(new MapTweetsByCountry()));
 
-        PAssert.that(output).containsInAnyOrder(KV.of("USA", inputTweet.getSentiment()));
+        PAssert.that(output).containsInAnyOrder(KV.of("United States", inputTweet.getSentiment()));
 
         testPipeline.run();
     }

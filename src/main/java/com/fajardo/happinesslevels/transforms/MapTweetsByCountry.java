@@ -19,8 +19,8 @@ public class MapTweetsByCountry extends SimpleFunction<Tweet, KV<String, Integer
 
     @Override
     public KV<String, Integer> apply(Tweet tweet) {
-        log.info("tweet location: {}", tweet.getLocation());
+        log.info("tweet location: {}", tweet.getCountry());
 
-        return KV.of("USA", tweet.getSentiment());
+        return KV.of(tweet.getCountry(), tweet.getSentiment());
     }
 }
