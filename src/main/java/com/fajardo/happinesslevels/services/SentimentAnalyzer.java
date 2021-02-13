@@ -11,10 +11,17 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
+import edu.stanford.nlp.util.logging.RedwoodConfiguration;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SentimentAnalyzer {
 
     public Tweet getTweetWithSentiment(Tweet tweet) {
+        RedwoodConfiguration.current().clear().apply();  // disable logging from Stanford CoreNLP
+        
+        Tweet tweetWithSentiment = null;
+
         if (tweet.getText() != null && tweet.getText().length() > 0) {
             int mainSentiment = 0;
             int longest = 0;
@@ -37,10 +44,10 @@ public class SentimentAnalyzer {
                 }
             }
             
-            tweet.setSentiment(mainSentiment);
-            return tweet;
-        } else {
-            return null;
+            log.info(tweet.getText() + ": " + mainSentiment);
+            tweetWithSentiment = new Tweet("", tweet.getLocation(), mainSentiment);
         }
+
+        return tweetWithSentiment;
     }
 }
