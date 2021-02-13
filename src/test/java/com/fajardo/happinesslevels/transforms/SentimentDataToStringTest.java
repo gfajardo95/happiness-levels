@@ -15,12 +15,12 @@ public class SentimentDataToStringTest {
 
     @Test
     public void testExpandCanReturnCountryMappingWithDate() {
-        KV<String, Double> countryMapping = KV.of("USA", 4.0);
+        KV<String, Double> countryMapping = KV.of("United States", 4.0);
 
         PCollection<KV<String, Double>> input = testPipeline.apply(Create.of(countryMapping));
         PCollection<String> output = input.apply(new SentimentDataToString());
 
-        PAssert.that(output).containsInAnyOrder("{\"country\":\"USA\",\"averageSentiment\":4.0}");
+        PAssert.that(output).containsInAnyOrder("{\"country\":\"United States\",\"averageSentiment\":4.0}");
 
         testPipeline.run();
     }

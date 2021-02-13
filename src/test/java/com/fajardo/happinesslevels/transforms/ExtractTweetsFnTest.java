@@ -20,7 +20,7 @@ public class ExtractTweetsFnTest {
     
     @Test
     public void testProcessElementGetsTweet() {
-        String testMessages = "{\"messages\": [{\"data\": {\"text\": \"TEST\", \"location\": \"\"}}]}";
+        String testMessages = "{\"messages\": [{\"data\": {\"text\": \"TEST\", \"country\": \"\"}}]}";
 
         PCollection<String> input = testPipeline.apply(Create.of(Base64.getEncoder().encodeToString(testMessages.getBytes())));
         PCollection<Tweet> output = input.apply(ParDo.of(new ExtractTweetsFn()));

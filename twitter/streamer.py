@@ -34,27 +34,25 @@ class TweetStreamListener(StreamListener):
         if not status.user.location:
             return
 
-        # extract relevant tweet data
-        text = status.text
-        retweets = status.retweet_count
-        loc = status.user.location
-        bio = status.user.description
-        tw = dict(text=text, retweets=retweets, location=loc,
-                    bio=bio)
+        place = status.place
+        if place is not None:
+            # extract relevant tweet data
+            text = status.text
+            tw = dict(text=text, country=place.country)
 
-        self.tweets.append(tw)
-        self.count += 1
+            self.tweets.append(tw)
+            self.count += 1
 
-        if len(self.tweets) >= self.batch_size:
-            print("publishing tweet stream")
-            self.write_to_pubsub(self.tweets)
-            self.tweets = []
+            if len(self.tweets) >= self.batch_size:
+                print("publishing tweet stream")
+                self.write_to_pubsub(self.tweets)
+                self.tweets = []
 
-        if (self.count % 50) == 0:
-            print("count is: {}".format(self.count))
+            if (self.count % 50) == 0:
+                print("count is: {}".format(self.count))
 
-        if self.count >= self.total_tweets:
-            return False
+            if self.count >= self.total_tweets:
+                return False
 
         return True
 

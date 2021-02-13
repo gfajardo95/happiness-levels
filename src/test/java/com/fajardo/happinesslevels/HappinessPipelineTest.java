@@ -38,9 +38,9 @@ public class HappinessPipelineTest {
     @Test
     public void testRunComputesWindowSentimentAverage() {
         // averageSentiment = 3
-        String testMessages1 = "{\"messages\": [{\"data\": {\"text\": \"happy\", \"location\": \"\"}}, {\"data\": {\"text\": \"okay\", \"location\": \"\"}}, {\"data\": {\"text\": \"happy\", \"location\": \"\"}}, {\"data\": {\"text\": \"okay\", \"location\": \"\"}} ]}";
+        String testMessages1 = "{\"messages\": [{\"data\": {\"text\": \"happy\", \"country\": \"United States\"}}, {\"data\": {\"text\": \"okay\", \"country\": \"United States\"}}, {\"data\": {\"text\": \"happy\", \"country\": \"United States\"}}, {\"data\": {\"text\": \"okay\", \"country\": \"United States\"}} ]}";
         // averageSentiment = 2
-        String testMessages2 = "{\"messages\": [{\"data\": {\"text\": \"happy\", \"location\": \"\"}}, {\"data\": {\"text\": \"sad\", \"location\": \"\"}}, {\"data\": {\"text\": \"okay\", \"location\": \"\"}}, {\"data\": {\"text\": \"sad\", \"location\": \"\"}} ]}";
+        String testMessages2 = "{\"messages\": [{\"data\": {\"text\": \"happy\", \"country\": \"Canada\"}}, {\"data\": {\"text\": \"sad\", \"country\": \"Canada\"}}, {\"data\": {\"text\": \"okay\", \"country\": \"Canada\"}}, {\"data\": {\"text\": \"sad\", \"country\": \"Canada\"}} ]}";
 
         TestStream<String> tweetStream = TestStream
             .create(StringUtf8Coder.of())
@@ -60,12 +60,12 @@ public class HappinessPipelineTest {
         PAssert
             .that(output)
             .inWindow(new IntervalWindow(baseTime, windowDuration))
-            .containsInAnyOrder("{\"country\":\"USA\",\"averageSentiment\":3.0}");
+            .containsInAnyOrder("{\"country\":\"United States\",\"averageSentiment\":3.0}");
 
         PAssert
             .that(output)
             .inWindow(new IntervalWindow(baseTime.plus(windowDuration), windowDuration))
-            .containsInAnyOrder("{\"country\":\"USA\",\"averageSentiment\":2.0}");
+            .containsInAnyOrder("{\"country\":\"Canada\",\"averageSentiment\":2.0}");
 
         testPipeline.run();
     }
