@@ -1,7 +1,7 @@
 package com.fajardo.happinesslevels.transforms;
 
-import com.fajardo.happinesslevels.models.Tweet;
 import com.fajardo.happinesslevels.services.SentimentAnalyzer;
+import com.fajardo.happinesslevels.models.Tweet;
 
 import org.apache.beam.sdk.transforms.DoFn;
 
@@ -15,12 +15,16 @@ public class GetSentimentFn extends DoFn<Tweet, Tweet> {
      */
     private static final long serialVersionUID = 1L;
 
+    private SentimentAnalyzer analyzer;
+
+    @Setup
+    public void setUp() {
+        analyzer = new SentimentAnalyzer();
+    }
+
     @ProcessElement
     public void ProcessElement(ProcessContext c) {
-        Tweet tw = new Tweet(c.element().getText(), c.element().getLocation(), c.element().getSentiment());
-        SentimentAnalyzer analyzer = new SentimentAnalyzer();
-        double sentiment = analyzer.getSentimentFromText(tw.getText());
-        tw.setSentiment(sentiment);
-        c.output(tw);
+        
+        c.output(analyzer.getTweetWithSentiment(c.element()));
     }
 }

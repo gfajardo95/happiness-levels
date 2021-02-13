@@ -142,12 +142,6 @@ calculate the average "happiness" of a set of countries</description>
             <version>4.2.0</version>
             <classifier>models</classifier>
         </dependency>
-        <!-- Adds a dependency on Apache Commons Math 3 -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-math3</artifactId>
-            <version>3.6.1</version>
-        </dependency>
 
         <!-- Adds a dependency on the Beam SDK. -->
         <dependency>
@@ -167,13 +161,6 @@ calculate the average "happiness" of a set of countries</description>
             <groupId>com.google.api-client</groupId>
             <artifactId>google-api-client</artifactId>
             <version>${google-api-client.version}</version>
-        </dependency>
-
-        <!--JSON Encoder/Decoder-->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.2</version>
         </dependency>
 
         <dependency>

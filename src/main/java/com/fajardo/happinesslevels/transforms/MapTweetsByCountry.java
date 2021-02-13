@@ -11,16 +11,14 @@ import com.fajardo.happinesslevels.models.Tweet;
  * in which it's written
  */
 @Slf4j
-public class MapTweetsByCountry extends SimpleFunction<Tweet, KV<String, Double>> {
+public class MapTweetsByCountry extends SimpleFunction<Tweet, KV<String, Integer>> {
     /**
      *
      */
     private static final long serialVersionUID = 1L;
 
     @Override
-    public KV<String, Double> apply(Tweet tweet) {
-        // String[] locationTokens = tweet.getLocation().split(",");
-        // String countryOfOrigin = getCountryOfOrigin(locationTokens[0]);  does not work if "city, country" format is not provided
+    public KV<String, Integer> apply(Tweet tweet) {
         log.info("tweet location: {}", tweet.getLocation());
 
         return KV.of("USA", tweet.getSentiment());

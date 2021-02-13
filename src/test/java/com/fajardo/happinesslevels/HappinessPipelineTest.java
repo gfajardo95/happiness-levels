@@ -54,7 +54,7 @@ public class HappinessPipelineTest {
             .apply(new AnalyzeSentiment())
             .apply(Window.<Tweet>into(FixedWindows.of(windowDuration)))
             .apply(MapElements.via(new MapTweetsByCountry()))
-            .apply(Mean.<String, Double>perKey())
+            .apply(Mean.<String, Integer>perKey())
             .apply(new SentimentDataToString());
 
         PAssert
