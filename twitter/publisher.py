@@ -9,9 +9,14 @@ def publish_twitter_stream():
     auth.set_access_token(settings.TWITTER_KEY, settings.TWITTER_SECRET)
     api = tweepy.API(auth)
 
-    stream_listener = TweetStreamListener()
-    stream = tweepy.Stream(auth=api.auth, listener=stream_listener)
-    stream.filter(track=["feel", "felt", "experiencing", "I am"])
+    while True:
+        try:
+            stream_listener = TweetStreamListener()
+            stream = tweepy.Stream(auth=api.auth, listener=stream_listener)
+            stream.filter(track=["feel", "felt"])
+        except Exception as e:
+            print(e)
+            print("Reconnecting...")
 
 
 if __name__ == '__main__':

@@ -23,8 +23,7 @@ class TweetStreamListener(StreamListener):
     topic_path = client.topic_path(settings.PROJECT_NAME, settings.PUBSUB_TOPIC_NAME)
     count = 0
     tweets = []
-    batch_size = 100
-    total_tweets = 200
+    batch_size = 50
 
     def write_to_pubsub(self, tw):
         publish(self.client, self.topic_path, tw)
@@ -36,7 +35,6 @@ class TweetStreamListener(StreamListener):
 
         place = status.place
         if place is not None:
-            # extract relevant tweet data
             text = status.text
             tw = dict(text=text, country=place.country)
 
@@ -51,11 +49,11 @@ class TweetStreamListener(StreamListener):
             if (self.count % 50) == 0:
                 print("count is: {}".format(self.count))
 
-            if self.count >= self.total_tweets:
-                return False
-
         return True
 
     def on_error(self, status_code):
         print("error: {}".format(status_code))
-        return False
+        if status_code == 420:
+            return False
+
+        return True
