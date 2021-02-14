@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import com.fajardo.happinesslevels.PipelineProperties;
 import com.fajardo.happinesslevels.models.CountrySentiment;
+import com.fajardo.happinesslevels.models.CountrySentimentRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.pubsub.v1.Subscriber;
@@ -30,14 +31,14 @@ public class CountrySentimentsController implements CountrySentiments {
 
     @MessageMapping("country-sentiments")
     @Override
-    public Flux<CountrySentiment> streamCountrySentiments(String subscriptionId) {
-        log.info("Requesting country sentiments from \"topics/{}/subscriptions/{}\"",
-                System.getenv("GOOGLE_CLOUD_PROJECT"), subscriptionId);
+    public Flux<CountrySentiment> streamCountrySentiments(final CountrySentimentRequest request) {
+        log.info("Requesting country sentiments from \"topics/{}/subscriptions/{}\"\nExpected projectId is {}",
+                System.getenv("GOOGLE_CLOUD_PROJECT"), request.getSubscriptionId(), request.getProjectId());
 
         runPipeline();
 
         return Flux.create(emitter -> {
-            Subscriber subscriber = pubsubTemplate.subscribe(subscriptionId, (message) -> {
+            Subscriber subscriber = pubsubTemplate.subscribe(request.getSubscriptionId(), (message) -> {
                 message.ack();
 
                 log.info("Received message: {}", message.getPubsubMessage().getData().toStringUtf8());
