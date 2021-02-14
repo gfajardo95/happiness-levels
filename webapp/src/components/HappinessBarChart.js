@@ -6,9 +6,7 @@ import RSocketWebSocketClient from 'rsocket-websocket-client';
 export default class HappinessBarChart extends React.Component {
 
     state = {
-        countrySentiments: [
-            { country: 'USA', averageSentiment: 0.0 }
-        ]
+        countrySentiments: []
     }
 
     componentDidMount() {
@@ -51,18 +49,20 @@ export default class HappinessBarChart extends React.Component {
                     onNext: payload => {
                         console.log(payload.data);
                         this.setState(function (prevState) {
+                            let foundCountry = false;
                             prevState.countrySentiments.map(data => {
                                 if (data.country === payload.data.country) {
-                                    if (data.averageSentiment === 0.0) {
-                                        data.averageSentiment = payload.data.averageSentiment;
-                                    } else {
-                                        const cumulativeAverage = (data.averageSentiment + payload.data.averageSentiment) / 2;
-                                        data.averageSentiment = cumulativeAverage;
-                                    }
+                                    foundCountry = true;
+                                    const cumulativeAverage = (data.averageSentiment + payload.data.averageSentiment) / 2;
+                                    data.averageSentiment = cumulativeAverage;
                                 }
 
                                 return data;
                             });
+
+                            if (!foundCountry) {
+                                prevState.countrySentiments.push(payload.data);
+                            }
 
                             return {
                                 countrySentiments: prevState.countrySentiments
@@ -89,10 +89,10 @@ export default class HappinessBarChart extends React.Component {
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="country" />
-                <YAxis domain={[0, 5]} tickCount={6}/>
+                <YAxis domain={[0, 5]} tickCount={6} />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="averageSentiment" fill="#8884d8" maxBarSize={200}/>
+                <Bar dataKey="averageSentiment" fill="#8884d8" maxBarSize={200} />
             </BarChart>
         );
     }
