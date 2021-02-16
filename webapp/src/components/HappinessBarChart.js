@@ -92,7 +92,7 @@ export default class HappinessBarChart extends React.Component {
                 <YAxis domain={[0, 5]} tickCount={6} />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="averageSentiment" fill="#8884d8" maxBarSize={200} />
+                <Bar name="Average Sentiment" dataKey="averageSentiment" fill="#8884d8" maxBarSize={200} />
             </BarChart>
         );
     }
