@@ -2,6 +2,7 @@
 .vscode/*
 .idea/*
 .settings/*
+.DS_Store
 
 # python
 venv
