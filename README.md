@@ -25,10 +25,15 @@ script, and integrate it with your own Google Cloud "subscriber".
 
 To run this option use the command: `$ python twitter/publisher.py`
 
-### Option 2: Publisher with Subscriber
-To see a fully integrated example of a Pub/Sub application without an intermediate data transformation step (the Beam pipeline) you can also run the `main.py` file, which is also found in the `twitter` directory. This file publishes the tweets to a Cloud Pub/Sub topic, and then the subscriber client, `subscriber.py`, sends the tweets from the topic to a Cloud BigQuery table.
+### Option 2: Publisher with Data Pipeline
+The `run_pipeline.py` script starts up the data pipeline with the Dataflow runner. Once the "workers are ready" message is received 
+then the `publisher.py` script from above is executed. The publisher runs infinitely, so exit the program when you wish, and also 
+close the pipeline in the cloud console.
 
-To run this option use the command: `$ python twitter/main.py`
+To run this option use the command: `$ python twitter/run_pipeline.py`
  
-### Option 3: Publisher to Beam
-This is the full end-to-end solution this application is designed to do. It is coming soon!
+### Option 3: Real-time Dashboard
+A React dashboard can communicate through RSocket with an endpoint that subscribes to the pipeline's output. To begin 
+the process and eventually see data come into the dashboard (it takes a while) first start up the Spring Boot server. Use the 
+`mvn spring-boot:run -Dspring-boot.run.profiles=dev` command to do so. Then, in a separate terminal window, go inside the `/webapp` directory and start the client with `npm start`. Use the logs to track the process, and be patient as the Twitter stream has been 
+highly reduced to only include Tweets that have country information.
